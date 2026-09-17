@@ -1,0 +1,5974 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+<link
+    rel="icon"
+    href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+        <text y='.9em' font-size='85'>📈</text>
+    </svg>"
+>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PIF Penetration Rate Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f5f7fa;
+        color: #111827;
+    }
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+
+    header {
+        height: 64px;
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 3000;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .cluster-select {
+        width: 170px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        padding: 8px 10px;
+        font-size: 12px;
+        background: #ffffff;
+    }
+
+    .burger-btn {
+        border: none;
+        background: transparent;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+
+    .burger-btn:hover {
+        background: #f3f4f6;
+    }
+
+    .header-title {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .header-subtitle {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 2px;
+    }
+
+    /* =====================================================
+       NAV DRAWER
+    ===================================================== */
+
+    .nav-drawer {
+        position: fixed;
+
+        top: 72px;
+        left: 0;
+
+        width: 240px;
+        height: calc(100vh - 72px);
+
+        background: #ffffff;
+
+        border-right: 1px solid #e5e7eb;
+
+        box-shadow: 6px 0 18px rgba(0,0,0,.08);
+
+        transform: translateX(-100%);
+
+        transition:
+            transform .28s cubic-bezier(.4,0,.2,1);
+
+        z-index: 2800;
+
+        padding: 14px 0;
+
+        overflow-y: auto;
+    }
+
+    .nav-drawer.open {
+        transform: translateX(0);
+    }
+
+    .nav-item {
+        width: 100%;
+
+        border: none;
+
+        background: transparent;
+
+        text-align: left;
+
+        padding: 14px 22px;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+
+        color: #374151;
+    }
+
+    .nav-item:hover {
+        background: #f3f4f6;
+    }
+
+    .nav-item.active {
+        background: #eef2ff;
+        color: #111827;
+    }
+
+    .nav-divider {
+        height: 1px;
+
+        background: #e5e7eb;
+
+        margin: 10px 0;
+    }
+
+    .nav-overlay {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(0,0,0,.18);
+
+        opacity: 0;
+
+        pointer-events: none;
+
+        transition: opacity .25s ease;
+
+        z-index: 2700;
+    }
+
+    .nav-overlay.open {
+        opacity: 1;
+
+        pointer-events: auto;
+    }
+
+    /* =====================================================
+       FILTER SIDEBAR
+    ===================================================== */
+
+    .filter-sidebar {
+        position: fixed;
+
+        top: 72px;
+        left: 0;
+
+        width: 320px;
+        height: calc(100vh - 72px);
+
+        background: #ffffff;
+
+        border-right: 1px solid #e5e7eb;
+
+        box-shadow:
+            6px 0 18px rgba(0,0,0,.08);
+
+        transform: translateX(-100%);
+
+        transition:
+            transform .28s cubic-bezier(.4,0,.2,1);
+
+        z-index: 2900;
+
+        padding: 18px;
+
+        overflow-y: auto;
+    }
+
+    .filter-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .filter-overlay {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(0,0,0,.18);
+
+        opacity: 0;
+
+        pointer-events: none;
+
+        transition: opacity .25s ease;
+
+        z-index: 2850;
+    }
+
+    .filter-overlay.open {
+        opacity: 1;
+
+        pointer-events: auto;
+    }
+
+    .filter-title {
+        font-size: 18px;
+
+        font-weight: 700;
+
+        margin-bottom: 4px;
+    }
+
+    .filter-subtitle {
+        font-size: 12px;
+
+        color: #6b7280;
+
+        margin-bottom: 18px;
+    }
+
+    .filter-row {
+        border: 1px solid #e5e7eb;
+
+        border-radius: 10px;
+
+        padding: 12px;
+
+        margin-bottom: 12px;
+
+        background: #fafafa;
+    }
+
+    .filter-row-header {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        margin-bottom: 9px;
+    }
+
+    .filter-row-title {
+        font-size: 12px;
+
+        font-weight: 700;
+    }
+
+    .remove-filter-btn {
+        border: none;
+
+        background: #fee2e2;
+
+        color: #991b1b;
+
+        width: 26px;
+
+        height: 26px;
+
+        border-radius: 6px;
+
+        cursor: pointer;
+
+        font-weight: 700;
+    }
+
+    .filter-label {
+        display: block;
+
+        font-size: 11px;
+
+        font-weight: 700;
+
+        margin-bottom: 5px;
+
+        color: #4b5563;
+    }
+
+    .filter-select,
+    .filter-input {
+        width: 100%;
+
+        border: 1px solid #d1d5db;
+
+        border-radius: 7px;
+
+        padding: 9px;
+
+        font-size: 12px;
+
+        background: #fff;
+    }
+
+    .filter-values {
+        margin-top: 10px;
+    }
+
+    .date-range {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 8px;
+    }
+
+    .filter-actions {
+        display: flex;
+
+        gap: 8px;
+
+        margin-top: 14px;
+    }
+
+    .filter-action-btn {
+        flex: 1;
+
+        border: none;
+
+        border-radius: 8px;
+
+        padding: 11px;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+    }
+
+    .apply-btn {
+        background: #111827;
+
+        color: #ffffff;
+    }
+
+    .clear-btn {
+        background: #e5e7eb;
+
+        color: #111827;
+    }
+
+    .add-filter-btn {
+        width: 100%;
+
+        margin-top: 8px;
+
+        border: 1px dashed #9ca3af;
+
+        background: #ffffff;
+
+        border-radius: 8px;
+
+        padding: 10px;
+
+        cursor: pointer;
+
+        font-size: 12px;
+
+        font-weight: 700;
+    }
+
+    .filter-count {
+        margin-top: 10px;
+
+        font-size: 11px;
+
+        color: #6b7280;
+    }
+
+    .download-btn {
+        width: 100%;
+
+        margin-top: 16px;
+
+        border: none;
+
+        background: #1d4ed8;
+
+        color: #ffffff;
+
+        border-radius: 8px;
+
+        padding: 12px;
+
+        cursor: pointer;
+
+        font-size: 12px;
+
+        font-weight: 700;
+    }
+
+    .download-btn:hover {
+        background: #1e40af;
+    }
+
+    .search-panel {
+        margin-top: 18px;
+
+        padding-top: 16px;
+
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .search-actions {
+        display: flex;
+
+        gap: 8px;
+
+        margin-top: 8px;
+    }
+
+    .search-actions button {
+        flex: 1;
+
+        border: none;
+
+        border-radius: 8px;
+
+        padding: 10px;
+
+        cursor: pointer;
+
+        font-size: 12px;
+
+        font-weight: 700;
+    }
+
+    .search-btn {
+        background: #047857;
+
+        color: #ffffff;
+    }
+
+    .search-clear-btn {
+        background: #e5e7eb;
+
+        color: #111827;
+    }
+
+    .search-count {
+        margin-top: 9px;
+
+        font-size: 11px;
+
+        color: #6b7280;
+    }
+
+    #searchResultsSection {
+        display: none;
+    }
+
+    .search-results-wrap {
+        width: 100%;
+
+        max-height: 520px;
+
+        overflow: auto;
+    }
+
+    .search-results-table {
+        min-width: 1100px;
+    }
+
+    .search-results-table th,
+    .search-results-table td {
+        text-align: left;
+    }
+
+    .search-results-table th {
+        position: sticky;
+
+        top: 0;
+
+        z-index: 1;
+    }
+
+    .search-results-empty {
+        padding: 24px;
+
+        text-align: center;
+
+        color: #6b7280;
+    }
+
+    #searchWorkspace {
+        display: none;
+    }
+
+    #dashboardContent.search-mode > *:not(#searchWorkspace) {
+        display: none;
+    }
+
+    #searchWorkspace .search-panel {
+        margin-top: 0;
+
+        padding: 0 0 18px;
+
+        border-top: none;
+    }
+
+    /* =====================================================
+       MAIN
+    ===================================================== */
+
+    main {
+        padding: 16px;
+    }
+
+    .file-section {
+        max-width: 700px;
+        margin: 24px auto;
+        background: #ffffff;
+        padding: 20px 22px;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 5px 20px rgba(0,0,0,.05);
+    }
+
+    .file-section h2 {
+        margin-top: 0;
+        margin-bottom: 8px;
+    }
+
+    .file-section p {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .file-input {
+        width: 100%;
+        margin-top: 16px;
+        padding: 12px;
+        border: 1px dashed #9ca3af;
+        border-radius: 9px;
+        background: #fafafa;
+    }
+
+    #dashboardContent {
+        display: none;
+    }
+
+    /* =====================================================
+       PENETRATION
+    ===================================================== */
+
+    .penetration-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        padding: 18px 18px 16px;
+        margin-bottom: 16px;
+    }
+
+    .penetration-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+    }
+
+    .penetration-label {
+        font-size: 13px;
+
+        color: #6b7280;
+
+        font-weight: 700;
+    }
+
+    .penetration-rate {
+        font-size: 46px;
+
+        font-weight: 800;
+
+        margin-top: 4px;
+    }
+
+    .penetration-rate.rate-red {
+        color: #dc2626;
+    }
+
+    .penetration-rate.rate-green {
+        color: #16a34a;
+    }
+
+    .progress-container {
+        width: 100%;
+
+        height: 28px;
+
+        background: #e5e7eb;
+
+        border-radius: 999px;
+
+        overflow: hidden;
+
+        margin-top: 10px;
+    }
+
+    .progress {
+        width: 0%;
+
+        height: 100%;
+
+        min-width: 0;
+
+        border-radius: 999px;
+
+        transition:
+            width .6s ease,
+            background-color .3s ease;
+    }
+
+    .progress.rate-red {
+        background-color: #dc2626;
+    }
+
+    .progress.rate-green {
+        background-color: #16a34a;
+    }
+
+    /* =====================================================
+       CARDS
+    ===================================================== */
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(5,1fr);
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-label {
+        font-size: 11px;
+
+        font-weight: 700;
+
+        color: #6b7280;
+    }
+
+    .card-value {
+        font-size: 28px;
+
+        font-weight: 800;
+
+        margin-top: 8px;
+    }
+
+    .total-card .card-value {
+        color: #111827;
+    }
+
+    .visited-card .card-value {
+        color: #16a34a;
+    }
+
+    .cancel-card .card-value {
+        color: #6b7280;
+    }
+
+    .pullout-card .card-value {
+        color: #ea580c;
+    }
+
+    .noresult-card .card-value {
+        color: #dc2626;
+    }
+
+    /* =====================================================
+       TABLES
+    ===================================================== */
+
+    .section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .section-title {
+        margin: 0;
+
+        font-size: 17px;
+
+        font-weight: 800;
+    }
+
+    .section-buttons {
+        display: flex;
+
+        gap: 8px;
+
+        align-items: center;
+
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        border: none;
+        color: #ffffff;
+        border-radius: 7px;
+        padding: 8px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .others-btn {
+        background: #4b5563;
+    }
+
+    .others-btn:hover {
+        background: #374151;
+    }
+
+    .out-area-btn {
+        background: #111827;
+    }
+
+    .out-area-btn:hover {
+        background: #000000;
+    }
+
+    .table-wrap {
+        width: 100%;
+
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+
+        border-collapse: collapse;
+
+        min-width: 900px;
+    }
+
+    th,
+    td {
+        padding: 11px 10px;
+
+        border-bottom:
+            1px solid #e5e7eb;
+
+        font-size: 12px;
+
+        text-align: right;
+
+        white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+        text-align: left;
+    }
+
+    th {
+        background: #f9fafb;
+
+        font-weight: 800;
+
+        cursor: pointer;
+
+        user-select: none;
+    }
+
+    tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .sort-arrow {
+        margin-left: 5px;
+
+        color: #9ca3af;
+    }
+
+    .rate-cell-green {
+        color: #16a34a;
+
+        font-weight: 700;
+    }
+
+    .rate-cell-red {
+        color: #dc2626;
+
+        font-weight: 700;
+    }
+
+    /*
+       OTHERS COLUMNS ARE HIDDEN BY DEFAULT.
+       They appear directly beside NO RESULT.
+    */
+
+    .others-column {
+        display: none;
+    }
+
+    table.others-open
+    .others-column {
+        display: table-cell;
+    }
+
+    .others-highlight {
+        font-weight: 700;
+
+        color: #4b5563;
+    }
+
+    #outOfAreaSection {
+        display: none;
+
+        margin-top: 14px;
+    }
+
+    /* =====================================================
+       LOADING
+    ===================================================== */
+
+    .loading-overlay {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(255,255,255,.96);
+
+        display: none;
+
+        align-items: center;
+
+        justify-content: center;
+
+        z-index: 5000;
+    }
+
+    .loading-box {
+        width: min(460px,90vw);
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 14px;
+
+        padding: 24px;
+
+        box-shadow:
+            0 10px 40px rgba(0,0,0,.12);
+    }
+
+    .loading-title {
+        font-size: 18px;
+
+        font-weight: 800;
+    }
+
+    .loading-status {
+        font-size: 12px;
+
+        color: #6b7280;
+
+        margin-top: 6px;
+    }
+
+    .loading-progress-container {
+        width: 100%;
+
+        height: 14px;
+
+        background: #e5e7eb;
+
+        border-radius: 999px;
+
+        overflow: hidden;
+
+        margin-top: 18px;
+    }
+
+    .loading-progress {
+        width: 0%;
+
+        height: 100%;
+
+        background: #111827;
+
+        transition: width .3s ease;
+    }
+
+    .loading-percent {
+        text-align: right;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        margin-top: 7px;
+    }
+
+    /* =====================================================
+       DAILY VISIT MODAL
+    ===================================================== */
+
+    .modal {
+        position: fixed;
+
+        inset: 0;
+
+        display: none;
+
+        align-items: center;
+
+        justify-content: center;
+
+        background: rgba(0,0,0,.45);
+
+        z-index: 6000;
+
+        padding: 20px;
+    }
+
+    .modal.open {
+        display: flex;
+    }
+
+    .modal-box {
+        width: min(1150px,96vw);
+
+        max-height: 90vh;
+
+        background: #ffffff;
+
+        border-radius: 16px;
+
+        box-shadow:
+            0 20px 70px rgba(0,0,0,.22);
+
+        overflow: hidden;
+
+        display: flex;
+
+        flex-direction: column;
+    }
+
+    .modal-header {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        padding: 18px 20px;
+
+        border-bottom:
+            1px solid #e5e7eb;
+    }
+
+    .modal-title {
+        margin: 0;
+
+        font-size: 18px;
+
+        font-weight: 800;
+    }
+
+    .modal-close {
+        border: none;
+
+        background: #f3f4f6;
+
+        width: 34px;
+
+        height: 34px;
+
+        border-radius: 8px;
+
+        cursor: pointer;
+
+        font-size: 18px;
+    }
+
+    .daily-summary {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+        gap: 12px;
+
+        padding: 16px 20px;
+
+        border-bottom:
+            1px solid #e5e7eb;
+
+        background: #fafafa;
+    }
+
+    .daily-summary-card {
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 10px;
+
+        padding: 13px;
+    }
+
+    .daily-summary-label {
+        font-size: 10px;
+
+        color: #6b7280;
+
+        font-weight: 700;
+    }
+
+    .daily-summary-value {
+        font-size: 22px;
+
+        font-weight: 800;
+
+        margin-top: 5px;
+    }
+
+    .daily-summary-detail {
+        font-size: 11px;
+
+        color: #6b7280;
+
+        margin-top: 4px;
+    }
+
+    .daily-total-column {
+        background: #ecfdf3;
+
+        color: #15803d;
+
+        font-weight: 800;
+    }
+
+    .daily-table-container {
+        padding: 18px 20px 20px;
+
+        overflow: auto;
+    }
+
+    .daily-table {
+        min-width: 950px;
+    }
+
+    .daily-table th {
+        position: sticky;
+
+        top: -18px;
+
+        z-index: 1;
+
+        box-shadow: 0 1px 0 #e5e7eb;
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ===================================================== */
+
+    @media (max-width: 1000px) {
+
+        .cards {
+            grid-template-columns:
+                repeat(2,1fr);
+        }
+
+    }
+
+    @media (max-width: 700px) {
+
+        main {
+            padding: 14px;
+        }
+
+        .cards {
+            grid-template-columns:
+                1fr;
+        }
+
+        .penetration-top {
+            flex-direction: column;
+
+            align-items: flex-start;
+        }
+
+        .daily-summary {
+            grid-template-columns:
+                1fr;
+        }
+
+        .section-heading {
+            flex-direction: column;
+
+            align-items: flex-start;
+        }
+
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+<div class="header-left">
+
+    <button
+        id="burgerBtn"
+        class="burger-btn"
+    >
+        ☰
+    </button>
+
+    <div>
+
+        <div class="header-title">
+            PIF PENETRATION RATE DASHBOARD
+        </div>
+
+        <div class="header-subtitle">
+            Field Monitoring
+        </div>
+
+    </div>
+
+</div>
+
+<div class="header-right">
+
+    <select
+        id="clusterSelect"
+        class="cluster-select"
+        disabled
+    >
+        <option value="">
+            ALL CLUSTERS
+        </option>
+    </select>
+
+</div>
+
+</header>
+
+<!-- =====================================================
+     NAV DRAWER
+===================================================== -->
+
+<nav
+    id="navDrawer"
+    class="nav-drawer"
+>
+
+<button
+    id="homeNavBtn"
+    class="nav-item active"
+>
+    ⌂ HOME
+</button>
+
+<button
+    id="filterNavBtn"
+    class="nav-item"
+>
+    ☷ FILTER
+</button>
+
+<div class="nav-divider"></div>
+
+<button
+    id="dailyVisitsNavBtn"
+    class="nav-item"
+>
+    📅 DAILY VISIT COUNT
+</button>
+
+<button
+    id="searchNavBtn"
+    class="nav-item"
+>
+    🔎 SEARCH EXCEL
+</button>
+
+</nav>
+
+<div
+    id="navOverlay"
+    class="nav-overlay"
+></div>
+
+<!-- =====================================================
+     FILTER OVERLAY
+===================================================== -->
+
+<div
+    id="filterOverlay"
+    class="filter-overlay"
+></div>
+
+<!-- =====================================================
+     FILTER SIDEBAR
+===================================================== -->
+
+<aside
+    id="filterSidebar"
+    class="filter-sidebar"
+>
+
+<div class="filter-title">
+    Dynamic Filters
+</div>
+
+<div class="filter-subtitle">
+    Choose which Excel columns you want to filter.
+</div>
+
+<div id="filtersContainer"></div>
+
+<button
+    id="addFilterBtn"
+    class="add-filter-btn"
+>
+    + ADD FILTER
+</button>
+
+<div class="filter-actions">
+
+    <button
+        id="applyFiltersBtn"
+        class="filter-action-btn apply-btn"
+    >
+        APPLY
+    </button>
+
+    <button
+        id="clearFiltersBtn"
+        class="filter-action-btn clear-btn"
+    >
+        CLEAR
+    </button>
+
+</div>
+
+<div
+    id="filterCount"
+    class="filter-count"
+>
+    0 active filter
+</div>
+
+<button
+    id="downloadExcelBtn"
+    class="download-btn"
+>
+    ↓ DOWNLOAD EXCEL
+</button>
+
+<div class="search-panel">
+
+    <div class="filter-title">
+        SEARCH EXCEL DATA
+    </div>
+
+    <div class="filter-subtitle">
+        Paste multiple values, one per line or separated by commas.
+    </div>
+
+    <label
+        class="filter-label"
+        for="searchColumn"
+    >
+        SEARCH COLUMN
+    </label>
+
+    <select
+        id="searchColumn"
+        class="filter-select"
+    >
+        <option value="">
+            CH CODE
+        </option>
+    </select>
+
+    <label
+        class="filter-label"
+        for="searchInput"
+        style="margin-top:10px;"
+    >
+        SEARCH VALUE
+    </label>
+
+    <textarea
+        id="searchInput"
+        class="filter-input"
+        rows="6"
+        placeholder="Paste values here..."
+    ></textarea>
+
+    <div class="search-actions">
+
+        <button
+            id="searchBtn"
+            class="search-btn"
+        >
+            SEARCH
+        </button>
+
+        <button
+            id="searchClearBtn"
+            class="search-clear-btn"
+        >
+            CLEAR
+        </button>
+
+    </div>
+
+    <div
+        id="searchCount"
+        class="search-count"
+    >
+        No search yet.
+    </div>
+
+</div>
+
+</aside>
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main>
+
+<section
+    id="fileSection"
+    class="file-section"
+>
+
+    <h2>
+        Load Excel File
+    </h2>
+
+    <p>
+        Select your
+        <strong>PIF PEN RATE.xlsx</strong>
+        file to load the dashboard.
+    </p>
+
+    <input
+        id="fileInput"
+        class="file-input"
+        type="file"
+        accept=".xlsx,.xls"
+    >
+
+</section>
+
+<div id="dashboardContent">
+
+    <section
+        id="searchWorkspace"
+    ></section>
+
+    <section
+        id="searchResultsSection"
+        class="section"
+    >
+
+        <div class="section-heading">
+
+            <h2 class="section-title">
+                SEARCH RESULTS
+            </h2>
+
+        </div>
+
+        <div class="search-results-wrap">
+
+            <table
+                id="searchResultsTable"
+                class="search-results-table"
+            >
+
+                <thead></thead>
+
+                <tbody></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- PENETRATION -->
+
+    <section class="penetration-card">
+
+        <div class="penetration-top">
+
+            <div>
+
+                <div class="penetration-label">
+                    PENETRATION RATE
+                </div>
+
+                <div
+                    id="penetrationRate"
+                    class="penetration-rate rate-red"
+                >
+                    0.00%
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="progress-container">
+
+            <div
+                id="progressBar"
+                class="progress rate-red"
+            ></div>
+
+        </div>
+
+    </section>
+
+    <!-- CARDS -->
+
+    <section class="cards">
+
+        <div class="card total-card">
+
+            <div class="card-label">
+                TOTAL RECORDS
+            </div>
+
+            <div
+                id="totalRecords"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="card visited-card">
+
+            <div class="card-label">
+                VISITED
+            </div>
+
+            <div
+                id="visitedRecords"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="card cancel-card">
+
+            <div class="card-label">
+                CANCEL
+            </div>
+
+            <div
+                id="cancelRecords"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="card pullout-card">
+
+            <div class="card-label">
+                PULLOUT
+            </div>
+
+            <div
+                id="pulloutRecords"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="card noresult-card">
+
+            <div class="card-label">
+                NO RESULT
+            </div>
+
+            <div
+                id="noResultRecords"
+                class="card-value"
+            >
+                0
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =================================================
+         PLACEMENT SUMMARY
+    ================================================== -->
+
+    <section class="section">
+
+        <div class="section-heading">
+
+            <h2 class="section-title">
+                Placement Summary
+            </h2>
+
+            <div class="section-buttons">
+
+                <button
+                    id="placementOthersBtn"
+                    class="action-btn others-btn"
+                >
+                    OTHERS
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table
+                id="placementTable"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th
+                            data-type="placement"
+                            data-column="0"
+                        >
+                            PLACEMENT
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="placement"
+                            data-column="1"
+                        >
+                            TOTAL RECORDS
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="placement"
+                            data-column="2"
+                        >
+                            VISITED
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="placement"
+                            data-column="3"
+                        >
+                            CANCEL
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="placement"
+                            data-column="4"
+                        >
+                            PULLOUT
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="placement"
+                            data-column="5"
+                        >
+                            NO RESULT
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <!-- OTHERS -->
+                        <th
+                            class="others-column"
+                        >
+                            UNTAGGED
+                        </th>
+
+                        <th
+                            class="others-column"
+                        >
+                            NOT PRINTED
+                        </th>
+
+                        <th
+                            data-type="placement"
+                            data-column="6"
+                        >
+                            PEN RATE
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- =================================================
+         FINAL AREA SUMMARY
+    ================================================== -->
+
+    <section class="section">
+
+        <div class="section-heading">
+
+            <h2 class="section-title">
+                Final Area Summary
+            </h2>
+
+            <div class="section-buttons">
+
+                <button
+                    id="finalAreaOthersBtn"
+                    class="action-btn others-btn"
+                >
+                    OTHERS
+                </button>
+
+                <button
+                    id="outOfAreaBtn"
+                    class="action-btn out-area-btn"
+                >
+                    OUT OF AREA
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table
+                id="finalAreaTable"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="0"
+                        >
+                            FINAL AREA
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="1"
+                        >
+                            TOTAL RECORDS
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="2"
+                        >
+                            VISITED
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="3"
+                        >
+                            CANCEL
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="4"
+                        >
+                            PULLOUT
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="5"
+                        >
+                            NO RESULT
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                        <!-- OTHERS -->
+
+                        <th
+                            class="others-column"
+                        >
+                            UNTAGGED
+                        </th>
+
+                        <th
+                            class="others-column"
+                        >
+                            NOT PRINTED
+                        </th>
+
+                        <th
+                            data-type="finalArea"
+                            data-column="6"
+                        >
+                            PEN RATE
+                            <span class="sort-arrow">↕</span>
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+
+        </div>
+
+        <!-- OUT OF AREA -->
+
+        <div
+            id="outOfAreaSection"
+        >
+
+            <div class="table-wrap">
+
+                <table
+                    id="outOfAreaTable"
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="0"
+                            >
+                                AREA
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="1"
+                            >
+                                TOTAL RECORDS
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="2"
+                            >
+                                VISITED
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="3"
+                            >
+                                CANCEL
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="4"
+                            >
+                                PULLOUT
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="5"
+                            >
+                                NO RESULT
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                            <th
+                                data-type="outOfArea"
+                                data-column="6"
+                            >
+                                PEN RATE
+                                <span class="sort-arrow">↕</span>
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+</main>
+
+<!-- =====================================================
+     LOADING OVERLAY
+===================================================== -->
+
+<div
+    id="loadingOverlay"
+    class="loading-overlay"
+>
+
+<div class="loading-box">
+
+    <div class="loading-title">
+        Loading Dashboard
+    </div>
+
+    <div
+        id="loadingStatus"
+        class="loading-status"
+    >
+        Preparing file...
+    </div>
+
+    <div class="loading-progress-container">
+
+        <div
+            id="loadingProgress"
+            class="loading-progress"
+        ></div>
+
+    </div>
+
+    <div
+        id="loadingPercent"
+        class="loading-percent"
+    >
+        0%
+    </div>
+
+</div>
+
+</div>
+
+<!-- =====================================================
+     DAILY VISIT MODAL
+===================================================== -->
+
+<div
+    id="dailyVisitsModal"
+    class="modal"
+>
+
+<div class="modal-box">
+
+    <div class="modal-header">
+
+        <h2 class="modal-title">
+            DAILY VISIT COUNT
+        </h2>
+
+        <button
+            id="closeDailyVisits"
+            class="modal-close"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <div class="daily-summary">
+
+        <div class="daily-summary-card">
+
+            <div class="daily-summary-label">
+                DAYS WITH VISITS
+            </div>
+
+            <div
+                id="dailyActiveDays"
+                class="daily-summary-value"
+            >
+                0
+            </div>
+
+        </div>
+
+        <div class="daily-summary-card">
+
+            <div class="daily-summary-label">
+                AVERAGE VISITS / DAY
+            </div>
+
+            <div
+                id="dailyAverageVisits"
+                class="daily-summary-value"
+            >
+                0
+            </div>
+
+        </div>
+        
+    </div>
+
+    <div class="daily-table-container">
+
+        <table
+            id="dailyVisitsTable"
+            class="daily-table"
+        >
+
+            <thead>
+
+                <tr>
+
+                    <th>DATE</th>
+
+                    <th>POS</th>
+
+                    <th>POS W/C</th>
+
+                    <th>PTP</th>
+
+                    <th>TP</th>
+
+                    <th>NEG</th>
+
+                    <th class="daily-total-column">TOTAL VISITS</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+    /* =====================================================
+       GLOBAL DATA
+    ===================================================== */
+
+    let originalData = [];
+
+    let filteredData = [];
+
+    let excelColumns = [];
+
+    let filters = [];
+
+    let sortState = {
+
+        placement: {
+            column: 0,
+            direction: "asc"
+        },
+
+        finalArea: {
+            column: 0,
+            direction: "asc"
+        },
+
+        outOfArea: {
+            column: 0,
+            direction: "asc"
+        }
+
+    };
+
+    const VISITED_STATUSES = [
+
+        "POS",
+        "POS W/C",
+        "PTP",
+        "TP",
+        "NEG"
+
+    ];
+
+    /* =====================================================
+       DOM
+    ===================================================== */
+
+    const fileInput =
+        document.getElementById(
+            "fileInput"
+        );
+
+    const fileSection =
+        document.getElementById(
+            "fileSection"
+        );
+
+    const dashboardContent =
+        document.getElementById(
+            "dashboardContent"
+        );
+
+    const burgerBtn =
+        document.getElementById(
+            "burgerBtn"
+        );
+
+    const navDrawer =
+        document.getElementById(
+            "navDrawer"
+        );
+
+    const navOverlay =
+        document.getElementById(
+            "navOverlay"
+        );
+
+    const homeNavBtn =
+        document.getElementById(
+            "homeNavBtn"
+        );
+
+    const filterNavBtn =
+        document.getElementById(
+            "filterNavBtn"
+        );
+
+    const dailyVisitsNavBtn =
+        document.getElementById(
+            "dailyVisitsNavBtn"
+        );
+
+    const searchNavBtn =
+        document.getElementById(
+            "searchNavBtn"
+        );
+
+    const clusterSelect =
+        document.getElementById(
+            "clusterSelect"
+        );
+
+    const filterSidebar =
+        document.getElementById(
+            "filterSidebar"
+        );
+
+    const filterOverlay =
+        document.getElementById(
+            "filterOverlay"
+        );
+
+    const filtersContainer =
+        document.getElementById(
+            "filtersContainer"
+        );
+
+    const addFilterBtn =
+        document.getElementById(
+            "addFilterBtn"
+        );
+
+    const applyFiltersBtn =
+        document.getElementById(
+            "applyFiltersBtn"
+        );
+
+    const clearFiltersBtn =
+        document.getElementById(
+            "clearFiltersBtn"
+        );
+
+    const filterCount =
+        document.getElementById(
+            "filterCount"
+        );
+
+    const searchColumn =
+        document.getElementById(
+            "searchColumn"
+        );
+
+    const searchInput =
+        document.getElementById(
+            "searchInput"
+        );
+
+    const searchBtn =
+        document.getElementById(
+            "searchBtn"
+        );
+
+    const searchClearBtn =
+        document.getElementById(
+            "searchClearBtn"
+        );
+
+    const searchCount =
+        document.getElementById(
+            "searchCount"
+        );
+
+    const searchResultsSection =
+        document.getElementById(
+            "searchResultsSection"
+        );
+
+    const searchResultsTable =
+        document.getElementById(
+            "searchResultsTable"
+        );
+
+    const searchWorkspace =
+        document.getElementById(
+            "searchWorkspace"
+        );
+
+    const searchPanel =
+        document.querySelector(
+            ".search-panel"
+        );
+
+    searchWorkspace.appendChild(
+        searchPanel
+    );
+
+    searchWorkspace.appendChild(
+        searchResultsSection
+    );
+
+    const downloadExcelBtn =
+        document.getElementById(
+            "downloadExcelBtn"
+        );
+
+    const placementOthersBtn =
+        document.getElementById(
+            "placementOthersBtn"
+        );
+
+    const finalAreaOthersBtn =
+        document.getElementById(
+            "finalAreaOthersBtn"
+        );
+
+    const placementTable =
+        document.getElementById(
+            "placementTable"
+        );
+
+    const finalAreaTable =
+        document.getElementById(
+            "finalAreaTable"
+        );
+
+    const outOfAreaBtn =
+        document.getElementById(
+            "outOfAreaBtn"
+        );
+
+    const outOfAreaSection =
+        document.getElementById(
+            "outOfAreaSection"
+        );
+
+    const penetrationRate =
+        document.getElementById(
+            "penetrationRate"
+        );
+
+    const progressBar =
+        document.getElementById(
+            "progressBar"
+        );
+
+    const totalRecords =
+        document.getElementById(
+            "totalRecords"
+        );
+
+    const visitedRecords =
+        document.getElementById(
+            "visitedRecords"
+        );
+
+    const cancelRecords =
+        document.getElementById(
+            "cancelRecords"
+        );
+
+    const pulloutRecords =
+        document.getElementById(
+            "pulloutRecords"
+        );
+
+    const noResultRecords =
+        document.getElementById(
+            "noResultRecords"
+        );
+
+    const loadingOverlay =
+        document.getElementById(
+            "loadingOverlay"
+        );
+
+    const loadingProgress =
+        document.getElementById(
+            "loadingProgress"
+        );
+
+    const loadingPercent =
+        document.getElementById(
+            "loadingPercent"
+        );
+
+    const loadingStatus =
+        document.getElementById(
+            "loadingStatus"
+        );
+
+    const dailyVisitsModal =
+        document.getElementById(
+            "dailyVisitsModal"
+        );
+
+    const closeDailyVisits =
+        document.getElementById(
+            "closeDailyVisits"
+        );
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    function normalize(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+
+            return "";
+
+        }
+
+        return String(
+            value
+        ).trim();
+
+    }
+
+    function upper(value) {
+
+        return normalize(
+            value
+        ).toUpperCase();
+
+    }
+
+    function formatNumber(value) {
+
+        return Number(
+            value || 0
+        ).toLocaleString();
+
+    }
+
+    function formatRate(rate) {
+
+        return Number(
+            rate || 0
+        ).toFixed(2) + "%";
+
+    }
+
+    function isVisitedStatus(value) {
+
+        return VISITED_STATUSES.includes(
+            upper(value)
+        );
+
+    }
+
+    function isCancelStatus(value) {
+
+        return upper(
+            value
+        ).includes(
+            "CANCEL"
+        );
+
+    }
+
+    function isPulloutStatus(value) {
+
+        return upper(value) ===
+            "RETURNS";
+
+    }
+
+    function getPenRate(
+        visited,
+        total
+    ) {
+
+        if (!total) {
+
+            return 0;
+
+        }
+
+        return (
+            visited /
+            total
+        ) * 100;
+
+    }
+
+    /* =====================================================
+       EXACT OTHERS LOGIC
+       
+       UNTAGGED and NOT PRINTED are ONLY counted when
+       FIELD RESULT = NO RESULT.
+    ===================================================== */
+
+    function isNoResult(
+        value
+    ) {
+
+        return upper(value) ===
+            "NO RESULT";
+
+    }
+
+    function isUntagged(
+        value
+    ) {
+
+        return upper(value) ===
+            "UNTAGGED";
+
+    }
+
+    function isNotPrinted(
+        value
+    ) {
+
+        return upper(value) ===
+            "NOT PRINTED";
+
+    }
+
+    function findExcelColumn(
+        targetName
+    ) {
+
+        const target =
+            upper(
+                targetName
+            );
+
+        return (
+            excelColumns.find(
+                column =>
+                    upper(column) ===
+                    target
+            ) || null
+        );
+
+    }
+
+    /* =====================================================
+       DATE HANDLING
+    ===================================================== */
+
+    function excelSerialToDateKey(
+        serial
+    ) {
+
+        const excelEpoch =
+            Date.UTC(
+                1899,
+                11,
+                30
+            );
+
+        const date =
+            new Date(
+                excelEpoch +
+                Math.floor(
+                    serial
+                ) * 86400000
+            );
+
+        if (
+            isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return "";
+
+        }
+
+        const year =
+            date.getUTCFullYear();
+
+        const month =
+            String(
+                date.getUTCMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
+
+        const day =
+            String(
+                date.getUTCDate()
+            ).padStart(
+                2,
+                "0"
+            );
+
+        return (
+            year +
+            "-" +
+            month +
+            "-" +
+            day
+        );
+
+    }
+
+    function normalizeDateValue(
+        value
+    ) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+
+            return "";
+
+        }
+
+        if (
+            typeof value === "number" &&
+            Number.isFinite(value)
+        ) {
+
+            return excelSerialToDateKey(
+                value
+            );
+
+        }
+
+        if (
+            value instanceof Date &&
+            !isNaN(
+                value.getTime()
+            )
+        ) {
+
+            const year =
+                value.getFullYear();
+
+            const month =
+                String(
+                    value.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            const day =
+                String(
+                    value.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            return (
+                year +
+                "-" +
+                month +
+                "-" +
+                day
+            );
+
+        }
+
+        const text =
+            String(
+                value
+            ).trim();
+
+        if (!text) {
+
+            return "";
+
+        }
+
+        if (
+            /^\d+(\.\d+)?$/.test(
+                text
+            )
+        ) {
+
+            const numericValue =
+                Number(text);
+
+            if (
+                numericValue >= 1000 &&
+                numericValue <= 100000
+            ) {
+
+                return excelSerialToDateKey(
+                    numericValue
+                );
+
+            }
+
+        }
+
+        const isoMatch =
+            text.match(
+                /(\d{4})-(\d{1,2})-(\d{1,2})/
+            );
+
+        if (
+            isoMatch
+        ) {
+
+            return (
+                isoMatch[1] +
+                "-" +
+                String(
+                    isoMatch[2]
+                ).padStart(
+                    2,
+                    "0"
+                ) +
+                "-" +
+                String(
+                    isoMatch[3]
+                ).padStart(
+                    2,
+                    "0"
+                )
+            );
+
+        }
+
+        const parsed =
+            new Date(
+                text
+            );
+
+        if (
+            !isNaN(
+                parsed.getTime()
+            )
+        ) {
+
+            const year =
+                parsed.getFullYear();
+
+            const month =
+                String(
+                    parsed.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            const day =
+                String(
+                    parsed.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            return (
+                year +
+                "-" +
+                month +
+                "-" +
+                day
+            );
+
+        }
+
+        return "";
+
+    }
+
+    function formatDisplayDate(
+        dateKey
+    ) {
+
+        const parts =
+            dateKey.split(
+                "-"
+            );
+
+        if (
+            parts.length !== 3
+        ) {
+
+            return dateKey;
+
+        }
+
+        const year =
+            parts[0];
+
+        const monthIndex =
+            Number(
+                parts[1]
+            ) - 1;
+
+        const day =
+            String(
+                Number(
+                    parts[2]
+                )
+            ).padStart(
+                2,
+                "0"
+            );
+
+        const months = [
+
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+
+        ];
+
+        if (
+            monthIndex < 0 ||
+            monthIndex > 11
+        ) {
+
+            return dateKey;
+
+        }
+
+        return (
+            months[
+                monthIndex
+            ] +
+            " " +
+            day +
+            ", " +
+            year
+        );
+
+    }
+
+    /* =====================================================
+       NAVIGATION
+    ===================================================== */
+
+    function closeNavDrawer() {
+
+        navDrawer.classList.remove(
+            "open"
+        );
+
+        navOverlay.classList.remove(
+            "open"
+        );
+
+    }
+
+    function openNavDrawer() {
+
+        closeFilterSidebar();
+
+        navDrawer.classList.add(
+            "open"
+        );
+
+        navOverlay.classList.add(
+            "open"
+        );
+
+    }
+
+    function closeFilterSidebar() {
+
+        filterSidebar.classList.remove(
+            "open"
+        );
+
+        filterOverlay.classList.remove(
+            "open"
+        );
+
+    }
+
+    function openFilterSidebar() {
+
+        closeNavDrawer();
+
+        filterSidebar.classList.add(
+            "open"
+        );
+
+        filterOverlay.classList.add(
+            "open"
+        );
+
+    }
+
+    function setHomeState() {
+
+        dashboardContent.classList.remove(
+            "search-mode"
+        );
+
+        searchWorkspace.style.display =
+            "none";
+
+        homeNavBtn.classList.add(
+            "active"
+        );
+
+        filterNavBtn.classList.remove(
+            "active"
+        );
+
+        dailyVisitsNavBtn.classList.remove(
+            "active"
+        );
+
+        searchNavBtn.classList.remove(
+            "active"
+        );
+
+        closeFilterSidebar();
+
+    }
+
+    function setFilterState() {
+
+        dashboardContent.classList.remove(
+            "search-mode"
+        );
+
+        searchWorkspace.style.display =
+            "none";
+
+        homeNavBtn.classList.remove(
+            "active"
+        );
+
+        filterNavBtn.classList.add(
+            "active"
+        );
+
+        dailyVisitsNavBtn.classList.remove(
+            "active"
+        );
+
+        searchNavBtn.classList.remove(
+            "active"
+        );
+
+        openFilterSidebar();
+
+    }
+
+    function setDailyVisitState() {
+
+        dashboardContent.classList.remove(
+            "search-mode"
+        );
+
+        searchWorkspace.style.display =
+            "none";
+
+        homeNavBtn.classList.remove(
+            "active"
+        );
+
+        filterNavBtn.classList.remove(
+            "active"
+        );
+
+        dailyVisitsNavBtn.classList.add(
+            "active"
+        );
+
+        searchNavBtn.classList.remove(
+            "active"
+        );
+
+        closeFilterSidebar();
+
+    }
+
+    function setSearchState() {
+
+        homeNavBtn.classList.remove(
+            "active"
+        );
+
+        filterNavBtn.classList.remove(
+            "active"
+        );
+
+        dailyVisitsNavBtn.classList.remove(
+            "active"
+        );
+
+        searchNavBtn.classList.add(
+            "active"
+        );
+
+        dashboardContent.classList.add(
+            "search-mode"
+        );
+
+        searchWorkspace.style.display =
+            "block";
+
+        closeFilterSidebar();
+
+    }
+
+    burgerBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                filterSidebar.classList.contains(
+                    "open"
+                )
+            ) {
+
+                closeFilterSidebar();
+
+                openNavDrawer();
+
+                return;
+
+            }
+
+            if (
+                navDrawer.classList.contains(
+                    "open"
+                )
+            ) {
+
+                closeNavDrawer();
+
+            } else {
+
+                openNavDrawer();
+
+            }
+
+        }
+    );
+
+    navOverlay.addEventListener(
+        "click",
+        () => {
+
+            closeNavDrawer();
+
+        }
+    );
+
+    filterOverlay.addEventListener(
+        "click",
+        () => {
+
+            closeFilterSidebar();
+
+            setHomeState();
+
+        }
+    );
+
+    homeNavBtn.addEventListener(
+        "click",
+        () => {
+
+            closeNavDrawer();
+
+            closeFilterSidebar();
+
+            setHomeState();
+
+        }
+    );
+
+    filterNavBtn.addEventListener(
+        "click",
+        () => {
+
+            closeNavDrawer();
+
+            setFilterState();
+
+        }
+    );
+
+    searchNavBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !originalData.length
+            ) {
+
+                alert(
+                    "Please load the Excel file first."
+                );
+
+                return;
+
+            }
+
+            closeNavDrawer();
+
+            setSearchState();
+
+        }
+    );
+
+    /* =====================================================
+       FILE LOADING
+    ===================================================== */
+
+    async function loadClusterMap() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "CLUSTER.xlsx",
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "CLUSTER.xlsx was not found."
+                );
+
+            }
+
+            const workbook =
+                XLSX.read(
+                    await response.arrayBuffer(),
+                    {
+                        type: "array"
+                    }
+                );
+
+            const worksheet =
+                workbook.Sheets[
+                    workbook.SheetNames[0]
+                ];
+
+            const clusterRows =
+                XLSX.utils.sheet_to_json(
+                    worksheet,
+                    {
+                        defval: "",
+                        raw: true
+                    }
+                );
+
+            return new Map(
+                clusterRows.map(
+                    row => [
+                        upper(
+                            row.AREA
+                        ),
+                        normalize(
+                            row[
+                                "CAPITAL REGION"
+                            ]
+                        )
+                    ]
+                )
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "CLUSTER.xlsx could not be loaded. CLUSTER values will be blank.",
+                error
+            );
+
+            return new Map();
+
+        }
+
+    }
+
+    function renderClusterSelect() {
+
+        const clusterValues =
+            Array.from(
+                new Set(
+                    originalData
+                        .map(
+                            row =>
+                                normalize(
+                                    row.CLUSTER
+                                )
+                        )
+                        .filter(
+                            value => value
+                        )
+                )
+            ).sort();
+
+        clusterSelect.innerHTML = `
+
+            <option value="">
+                ALL CLUSTERS
+            </option>
+
+        `;
+
+        clusterValues.forEach(
+            cluster => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    cluster;
+
+                option.textContent =
+                    cluster;
+
+                clusterSelect.appendChild(
+                    option
+                );
+
+            }
+        );
+
+        clusterSelect.disabled =
+            false;
+
+    }
+
+    async function loadExcelFile(
+        file
+    ) {
+
+            if (!file) {
+
+                return;
+
+            }
+
+            try {
+
+                loadingOverlay.style.display =
+                    "flex";
+
+                updateLoading(
+                    5,
+                    "Reading Excel file..."
+                );
+
+                const buffer =
+                    await file.arrayBuffer();
+
+                updateLoading(
+                    15,
+                    "Opening workbook..."
+                );
+
+                await delay(100);
+
+                const workbook =
+                    XLSX.read(
+                        buffer,
+                        {
+                            type: "array"
+                        }
+                    );
+
+                updateLoading(
+                    30,
+                    "Loading PIF PEN RATE sheet..."
+                );
+
+                const sheetName =
+                    workbook.SheetNames.includes(
+                        "PIF PEN RATE"
+                    )
+                        ? "PIF PEN RATE"
+                        : workbook.SheetNames[0];
+
+                const worksheet =
+                    workbook.Sheets[
+                        sheetName
+                    ];
+
+                updateLoading(
+                    50,
+                    "Converting Excel data..."
+                );
+
+                await delay(100);
+
+                originalData =
+                    XLSX.utils.sheet_to_json(
+                        worksheet,
+                        {
+                            defval: "",
+                            raw: true
+                        }
+                    );
+
+                updateLoading(
+                    58,
+                    "Loading CLUSTER.xlsx..."
+                );
+
+                const clusterMap =
+                    await loadClusterMap();
+
+                originalData =
+                    originalData.map(
+                        row => ({
+                            ...row,
+                            CLUSTER:
+                                clusterMap.get(
+                                    upper(
+                                        row.AREA
+                                    )
+                                ) || ""
+                        })
+                    );
+
+                renderClusterSelect();
+
+                filteredData =
+                    [
+                        ...originalData
+                    ];
+
+                if (
+                    originalData.length > 0
+                ) {
+
+                    excelColumns =
+                        Object.keys(
+                            originalData[0]
+                        );
+
+                } else {
+
+                    excelColumns = [];
+
+                }
+
+                renderSearchColumns();
+
+                updateLoading(
+                    65,
+                    "Preparing filters..."
+                );
+
+                filters = [
+
+                    {
+                        column: "",
+                        values: [],
+                        from: "",
+                        to: ""
+                    }
+
+                ];
+
+                renderFilters();
+
+                updateLoading(
+                    75,
+                    "Calculating dashboard..."
+                );
+
+                await delay(100);
+
+                renderDashboard();
+
+                renderPlacementSummary();
+
+                renderFinalAreaSummary();
+
+                renderOutOfAreaSummary();
+
+                updateLoading(
+                    92,
+                    "Preparing summaries..."
+                );
+
+                await delay(100);
+
+                updateLoading(
+                    100,
+                    "Dashboard ready!"
+                );
+
+                await delay(250);
+
+                loadingOverlay.style.display =
+                    "none";
+
+                fileSection.style.display =
+                    "none";
+
+                dashboardContent.style.display =
+                    "block";
+
+                closeNavDrawer();
+
+                closeFilterSidebar();
+
+                setHomeState();
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                loadingOverlay.style.display =
+                    "none";
+
+                alert(
+                    "There was an error loading the Excel file.\n\n" +
+                    error.message
+                );
+
+            }
+
+    }
+
+    fileInput.addEventListener(
+        "change",
+        event => {
+
+            loadExcelFile(
+                event.target.files[0]
+            );
+
+        }
+    );
+
+    async function loadBundledWorkbook() {
+
+        try {
+
+            const workbookNames = [
+                "PIF PEN RATE.xlsx",
+                "PEN RATE.xlsx"
+            ];
+
+            let response = null;
+
+            let workbookName = "";
+
+            for (const candidate of workbookNames) {
+
+                try {
+
+                    const candidateResponse =
+                        await fetch(
+                            candidate,
+                            {
+                                cache: "no-store"
+                            }
+                        );
+
+                    if (candidateResponse.ok) {
+
+                        response = candidateResponse;
+
+                        workbookName = candidate;
+
+                        break;
+
+                    }
+
+                } catch (error) {
+
+                }
+
+            }
+
+            if (!response) {
+
+                throw new Error(
+                    "PEN RATE.xlsx or PIF PEN RATE.xlsx was not found."
+                );
+
+            }
+
+            const blob =
+                await response.blob();
+
+            const file =
+                new File(
+                    [blob],
+                    workbookName,
+                    {
+                        type: blob.type ||
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    }
+                );
+
+            await loadExcelFile(
+                file
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Automatic Excel loading was not available. Choose the workbook manually.",
+                error
+            );
+
+        }
+
+    }
+
+    loadBundledWorkbook();
+
+    function delay(ms) {
+
+        return new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    ms
+                )
+        );
+
+    }
+
+    function updateLoading(
+        percent,
+        status
+    ) {
+
+        loadingProgress.style.width =
+            percent + "%";
+
+        loadingPercent.textContent =
+            percent + "%";
+
+        loadingStatus.textContent =
+            status;
+
+    }
+
+    /* =====================================================
+       DASHBOARD
+    ===================================================== */
+
+    function calculateSummary(
+        data
+    ) {
+
+        let total = 0;
+
+        let visited = 0;
+
+        let cancel = 0;
+
+        let pullout = 0;
+
+        data.forEach(
+            row => {
+
+                const accountNumber =
+                    normalize(
+                        row[
+                            "ACCOUNT NUMBER"
+                        ]
+                    );
+
+                if (!accountNumber) {
+
+                    return;
+
+                }
+
+                total++;
+
+                const result =
+                    row[
+                        "FIELD RESULT"
+                    ];
+
+                if (
+                    isVisitedStatus(
+                        result
+                    )
+                ) {
+
+                    visited++;
+
+                }
+
+                if (
+                    isCancelStatus(
+                        result
+                    )
+                ) {
+
+                    cancel++;
+
+                }
+
+                if (
+                    isPulloutStatus(
+                        result
+                    )
+                ) {
+
+                    pullout++;
+
+                }
+
+            }
+        );
+
+        const noResult =
+            Math.max(
+                0,
+                total -
+                visited -
+                cancel -
+                pullout
+            );
+
+        return {
+
+            total,
+
+            visited,
+
+            cancel,
+
+            pullout,
+
+            noResult,
+
+            rate:
+                getPenRate(
+                    visited,
+                    total
+                )
+
+        };
+
+    }
+
+    function renderDashboard() {
+
+        const summary =
+            calculateSummary(
+                filteredData
+            );
+
+        totalRecords.textContent =
+            formatNumber(
+                summary.total
+            );
+
+        visitedRecords.textContent =
+            formatNumber(
+                summary.visited
+            );
+
+        cancelRecords.textContent =
+            formatNumber(
+                summary.cancel
+            );
+
+        pulloutRecords.textContent =
+            formatNumber(
+                summary.pullout
+            );
+
+        noResultRecords.textContent =
+            formatNumber(
+                summary.noResult
+            );
+
+        penetrationRate.textContent =
+            formatRate(
+                summary.rate
+            );
+
+        penetrationRate.classList.remove(
+            "rate-red",
+            "rate-green"
+        );
+
+        progressBar.classList.remove(
+            "rate-red",
+            "rate-green"
+        );
+
+        if (
+            summary.rate >= 75
+        ) {
+
+            penetrationRate.classList.add(
+                "rate-green"
+            );
+
+            progressBar.classList.add(
+                "rate-green"
+            );
+
+        } else {
+
+            penetrationRate.classList.add(
+                "rate-red"
+            );
+
+            progressBar.classList.add(
+                "rate-red"
+            );
+
+        }
+
+        progressBar.style.width =
+            Math.min(
+                100,
+                Math.max(
+                    0,
+                    summary.rate
+                )
+            ) + "%";
+
+    }
+
+    /* =====================================================
+       GROUP SUMMARY
+    ===================================================== */
+
+    function summarizeGroups(
+        data,
+        groupColumn
+    ) {
+
+        const groups = {};
+
+        data.forEach(
+            row => {
+
+                const accountNumber =
+                    normalize(
+                        row[
+                            "ACCOUNT NUMBER"
+                        ]
+                    );
+
+                if (!accountNumber) {
+
+                    return;
+
+                }
+
+                const groupName =
+                    normalize(
+                        row[
+                            groupColumn
+                        ]
+                    ) ||
+                    "(BLANK)";
+
+                if (
+                    !groups[groupName]
+                ) {
+
+                    groups[groupName] = {
+
+                        name:
+                            groupName,
+
+                        total:
+                            0,
+
+                        visited:
+                            0,
+
+                        cancel:
+                            0,
+
+                        pullout:
+                            0,
+
+                        noResult:
+                            0,
+
+                        untagged:
+                            0,
+
+                        notPrinted:
+                            0,
+
+                        penRate:
+                            0
+
+                    };
+
+                }
+
+                const group =
+                    groups[
+                        groupName
+                    ];
+
+                group.total++;
+
+                const result =
+                    row[
+                        "FIELD RESULT"
+                    ];
+
+                if (
+                    isVisitedStatus(
+                        result
+                    )
+                ) {
+
+                    group.visited++;
+
+                }
+
+                if (
+                    isCancelStatus(
+                        result
+                    )
+                ) {
+
+                    group.cancel++;
+
+                }
+
+                if (
+                    isPulloutStatus(
+                        result
+                    )
+                ) {
+
+                    group.pullout++;
+
+                }
+
+                /*
+                   ONLY NO RESULT rows
+                   are checked for UNTAGGED
+                   and NOT PRINTED.
+                */
+
+                if (
+                    isNoResult(
+                        result
+                    )
+                ) {
+
+                    const taggedColumn =
+                        findExcelColumn(
+                            "TAGGED"
+                        );
+
+                    const printedColumn =
+                        findExcelColumn(
+                            "PRINTED"
+                        );
+
+                    if (
+                        taggedColumn &&
+                        isUntagged(
+                            row[
+                                taggedColumn
+                            ]
+                        )
+                    ) {
+
+                        group.untagged++;
+
+                    }
+
+                    if (
+                        printedColumn &&
+                        isNotPrinted(
+                            row[
+                                printedColumn
+                            ]
+                        )
+                    ) {
+
+                        group.notPrinted++;
+
+                    }
+
+                }
+
+            }
+        );
+
+        Object.values(
+            groups
+        ).forEach(
+            group => {
+
+                group.noResult =
+                    Math.max(
+                        0,
+                        group.total -
+                        group.visited -
+                        group.cancel -
+                        group.pullout
+                    );
+
+                group.penRate =
+                    getPenRate(
+                        group.visited,
+                        group.total
+                    );
+
+            }
+        );
+
+        return Object.values(
+            groups
+        );
+
+    }
+
+    /* =====================================================
+       SORTING
+    ===================================================== */
+
+    function compareValues(
+        a,
+        b
+    ) {
+
+        if (
+            typeof a === "number" &&
+            typeof b === "number"
+        ) {
+
+            return a - b;
+
+        }
+
+        return String(
+            a
+        ).localeCompare(
+            String(
+                b
+            ),
+            undefined,
+            {
+                numeric: true,
+                sensitivity: "base"
+            }
+        );
+
+    }
+
+    /*
+       Main sortable columns are still:
+
+       0 = name
+       1 = total
+       2 = visited
+       3 = cancel
+       4 = pullout
+       5 = noResult
+       6 = penRate
+
+       OTHERS columns are informational and
+       do not change the main sorting.
+    */
+
+    const sortKeys = [
+
+        "name",
+        "total",
+        "visited",
+        "cancel",
+        "pullout",
+        "noResult",
+        "penRate"
+
+    ];
+
+    function sortGroups(
+        groups,
+        type
+    ) {
+
+        const state =
+            sortState[type];
+
+        const key =
+            sortKeys[
+                state.column
+            ];
+
+        groups.sort(
+            (a,b) => {
+
+                const result =
+                    compareValues(
+                        a[key],
+                        b[key]
+                    );
+
+                if (
+                    state.direction ===
+                    "asc"
+                ) {
+
+                    return result;
+
+                }
+
+                return -result;
+
+            }
+        );
+
+        return groups;
+
+    }
+
+    function updateSortArrows(
+        type
+    ) {
+
+        document
+            .querySelectorAll(
+                `th[data-type="${type}"]`
+            )
+            .forEach(
+                th => {
+
+                    const arrow =
+                        th.querySelector(
+                            ".sort-arrow"
+                        );
+
+                    const column =
+                        Number(
+                            th.dataset.column
+                        );
+
+                    const state =
+                        sortState[type];
+
+                    if (
+                        column !==
+                        state.column
+                    ) {
+
+                        arrow.textContent =
+                            "↕";
+
+                    } else if (
+                        state.direction ===
+                        "asc"
+                    ) {
+
+                        arrow.textContent =
+                            "▲";
+
+                    } else {
+
+                        arrow.textContent =
+                            "▼";
+
+                    }
+
+                }
+            );
+
+    }
+
+    /* =====================================================
+       RENDER GROUP TABLE
+    ===================================================== */
+
+    function renderGroupTable(
+        tableId,
+        groups,
+        type
+    ) {
+
+        const table =
+            document.getElementById(
+                tableId
+            );
+
+        const tbody =
+            table.querySelector(
+                "tbody"
+            );
+
+        tbody.innerHTML =
+            "";
+
+        sortGroups(
+            groups,
+            type
+        );
+
+        groups.forEach(
+            group => {
+
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
+
+                const rateClass =
+                    group.penRate >= 75
+                        ? "rate-cell-green"
+                        : "rate-cell-red";
+
+                tr.innerHTML = `
+
+                    <td>
+                        ${escapeHtml(
+                            group.name
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.total
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.visited
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.cancel
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.pullout
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.noResult
+                        )}
+                    </td>
+
+                    <td class="others-column others-highlight">
+                        ${formatNumber(
+                            group.untagged
+                        )}
+                    </td>
+
+                    <td class="others-column others-highlight">
+                        ${formatNumber(
+                            group.notPrinted
+                        )}
+                    </td>
+
+                    <td class="${rateClass}">
+                        ${formatRate(
+                            group.penRate
+                        )}
+                    </td>
+
+                `;
+
+                tbody.appendChild(
+                    tr
+                );
+
+            }
+        );
+
+        updateSortArrows(
+            type
+        );
+
+    }
+
+    function renderPlacementSummary() {
+
+        const groups =
+            summarizeGroups(
+                filteredData,
+                "PLACEMENT"
+            );
+
+        renderGroupTable(
+            "placementTable",
+            groups,
+            "placement"
+        );
+
+    }
+
+    function renderFinalAreaSummary() {
+
+        const groups =
+            summarizeGroups(
+                filteredData,
+                "FINAL AREA"
+            );
+
+        renderGroupTable(
+            "finalAreaTable",
+            groups,
+            "finalArea"
+        );
+
+    }
+
+    /* =====================================================
+       OUT OF AREA
+    ===================================================== */
+
+    function renderOutOfAreaSummary() {
+
+        const outOfAreaRows =
+            filteredData.filter(
+                row =>
+                    upper(
+                        row[
+                            "FINAL AREA"
+                        ]
+                    ) ===
+                    "OUT OF AREA"
+            );
+
+        const groups =
+            summarizeGroups(
+                outOfAreaRows,
+                "AREA"
+            );
+
+        renderOutOfAreaGroupTable(
+            groups
+        );
+
+    }
+
+    function renderOutOfAreaGroupTable(
+        groups
+    ) {
+
+        const table =
+            document.getElementById(
+                "outOfAreaTable"
+            );
+
+        const tbody =
+            table.querySelector(
+                "tbody"
+            );
+
+        tbody.innerHTML =
+            "";
+
+        sortGroups(
+            groups,
+            "outOfArea"
+        );
+
+        groups.forEach(
+            group => {
+
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
+
+                const rateClass =
+                    group.penRate >= 75
+                        ? "rate-cell-green"
+                        : "rate-cell-red";
+
+                tr.innerHTML = `
+
+                    <td>
+                        ${escapeHtml(
+                            group.name
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.total
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.visited
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.cancel
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.pullout
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            group.noResult
+                        )}
+                    </td>
+
+                    <td class="${rateClass}">
+                        ${formatRate(
+                            group.penRate
+                        )}
+                    </td>
+
+                `;
+
+                tbody.appendChild(
+                    tr
+                );
+
+            }
+        );
+
+        updateSortArrows(
+            "outOfArea"
+        );
+
+    }
+
+    outOfAreaBtn.addEventListener(
+        "click",
+        () => {
+
+            const hidden =
+                outOfAreaSection.style.display ===
+                "none";
+
+            if (hidden) {
+
+                outOfAreaSection.style.display =
+                    "block";
+
+                outOfAreaBtn.textContent =
+                    "HIDE OUT OF AREA";
+
+            } else {
+
+                outOfAreaSection.style.display =
+                    "none";
+
+                outOfAreaBtn.textContent =
+                    "OUT OF AREA";
+
+            }
+
+        }
+    );
+
+    /* =====================================================
+       OTHERS BUTTONS
+       
+       The columns appear directly beside NO RESULT.
+    ===================================================== */
+
+    function toggleOthers(
+        table,
+        button
+    ) {
+
+        const open =
+            table.classList.toggle(
+                "others-open"
+            );
+
+        button.textContent =
+            open
+                ? "HIDE OTHERS"
+                : "OTHERS";
+
+    }
+
+    placementOthersBtn.addEventListener(
+        "click",
+        () => {
+
+            toggleOthers(
+                placementTable,
+                placementOthersBtn
+            );
+
+        }
+    );
+
+    finalAreaOthersBtn.addEventListener(
+        "click",
+        () => {
+
+            toggleOthers(
+                finalAreaTable,
+                finalAreaOthersBtn
+            );
+
+        }
+    );
+
+    /* =====================================================
+       SORT EVENTS
+    ===================================================== */
+
+    document
+        .querySelectorAll(
+            "th[data-type][data-column]"
+        )
+        .forEach(
+            th => {
+
+                th.addEventListener(
+                    "click",
+                    () => {
+
+                        const type =
+                            th.dataset.type;
+
+                        const column =
+                            Number(
+                                th.dataset.column
+                            );
+
+                        const state =
+                            sortState[type];
+
+                        if (
+                            state.column ===
+                            column
+                        ) {
+
+                            state.direction =
+                                state.direction ===
+                                "asc"
+                                    ? "desc"
+                                    : "asc";
+
+                        } else {
+
+                            state.column =
+                                column;
+
+                            state.direction =
+                                "asc";
+
+                        }
+
+                        if (
+                            type ===
+                            "placement"
+                        ) {
+
+                            renderPlacementSummary();
+
+                        } else if (
+                            type ===
+                            "finalArea"
+                        ) {
+
+                            renderFinalAreaSummary();
+
+                        } else if (
+                            type ===
+                            "outOfArea"
+                        ) {
+
+                            renderOutOfAreaSummary();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+    /* =====================================================
+       DYNAMIC FILTERS
+    ===================================================== */
+
+    function isDateColumnName(
+        columnName
+    ) {
+
+        const text =
+            upper(
+                columnName
+            );
+
+        return (
+            text.includes("DATE") ||
+            text.includes("DATETIME")
+        );
+
+    }
+
+    function getUniqueColumnValues(
+        columnName
+    ) {
+
+        const values =
+            new Set();
+
+        originalData.forEach(
+            row => {
+
+                values.add(
+                    normalize(
+                        row[
+                            columnName
+                        ]
+                    )
+                );
+
+            }
+        );
+
+        return Array.from(
+            values
+        ).sort(
+            (a,b) =>
+                a.localeCompare(
+                    b,
+                    undefined,
+                    {
+                        numeric: true,
+                        sensitivity: "base"
+                    }
+                )
+        );
+
+    }
+
+    function renderSearchColumns() {
+
+        searchColumn.innerHTML = `
+
+            <option value="">
+                Select column...
+            </option>
+
+        `;
+
+        excelColumns.forEach(
+            column => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    column;
+
+                option.textContent =
+                    column;
+
+                searchColumn.appendChild(
+                    option
+                );
+
+            }
+        );
+
+        if (
+            excelColumns.includes(
+                "CH CODE"
+            )
+        ) {
+
+            searchColumn.value =
+                "CH CODE";
+
+        }
+
+        updateSearchPlaceholder();
+
+    }
+
+    function updateSearchPlaceholder() {
+
+        const column =
+            searchColumn.value;
+
+        searchInput.placeholder =
+            column
+                ? `Paste ${column} values here...`
+                : "Paste values here...";
+
+    }
+
+    searchColumn.addEventListener(
+        "change",
+        () => {
+
+            updateSearchPlaceholder();
+
+            searchResultsSection.style.display =
+                "none";
+
+            searchCount.textContent =
+                "No search yet.";
+
+        }
+    );
+
+    function getSearchCriteria() {
+
+        return normalize(
+            searchInput.value
+        )
+            .split(/[\n,;]+/)
+            .map(
+                value =>
+                    normalize(
+                        value
+                    ).toLowerCase()
+            )
+            .filter(
+                (value, index, values) =>
+                    value &&
+                    values.indexOf(
+                        value
+                    ) === index
+            );
+
+    }
+
+    function renderSearchResults(
+        rows,
+        column,
+        query
+    ) {
+
+        const header =
+            searchResultsTable.querySelector(
+                "thead"
+            );
+
+        const body =
+            searchResultsTable.querySelector(
+                "tbody"
+            );
+
+        header.innerHTML = "";
+
+        body.innerHTML = "";
+
+        if (
+            !column ||
+            !query
+        ) {
+
+            searchResultsSection.style.display =
+                "none";
+
+            return;
+
+        }
+
+        searchResultsSection.style.display =
+            "block";
+
+        const headerRow =
+            document.createElement(
+                "tr"
+            );
+
+        excelColumns.forEach(
+            columnName => {
+
+                const th =
+                    document.createElement(
+                        "th"
+                    );
+
+                th.textContent =
+                    columnName;
+
+                headerRow.appendChild(
+                    th
+                );
+
+            }
+        );
+
+        header.appendChild(
+            headerRow
+        );
+
+        if (
+            rows.length === 0
+        ) {
+
+            const emptyRow =
+                document.createElement(
+                    "tr"
+                );
+
+            const emptyCell =
+                document.createElement(
+                    "td"
+                );
+
+            emptyCell.colSpan =
+                excelColumns.length;
+
+            emptyCell.className =
+                "search-results-empty";
+
+            emptyCell.textContent =
+                "No matching rows found.";
+
+            emptyRow.appendChild(
+                emptyCell
+            );
+
+            body.appendChild(
+                emptyRow
+            );
+
+            return;
+
+        }
+
+        rows.forEach(
+            row => {
+
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
+
+                excelColumns.forEach(
+                    columnName => {
+
+                        const td =
+                            document.createElement(
+                                "td"
+                            );
+
+                        td.textContent =
+                            normalize(
+                                row[
+                                    columnName
+                                ]
+                            );
+
+                        tr.appendChild(
+                            td
+                        );
+
+                    }
+                );
+
+                body.appendChild(
+                    tr
+                );
+
+            }
+        );
+
+    }
+
+    function performSearch() {
+
+        const criteria =
+            getSearchCriteria();
+
+        if (
+            !searchColumn.value ||
+            !criteria.length
+        ) {
+
+            searchCount.textContent =
+                `Paste at least one value for ${
+                    searchColumn.value ||
+                    "the selected column"
+                }.`;
+
+            renderSearchResults(
+                [],
+                "",
+                ""
+            );
+
+            return;
+
+        }
+
+        const matchingRows =
+            originalData.filter(
+                row =>
+                    criteria.includes(
+                        normalize(
+                            row[
+                                searchColumn.value
+                            ]
+                        ).toLowerCase()
+                    )
+            );
+
+        searchCount.textContent =
+            matchingRows.length > 0
+                ? `${formatNumber(
+                    matchingRows.length
+                )} matching row(s)`
+                : `No matching ${
+                    searchColumn.value
+                } found.`;
+
+        renderSearchResults(
+            matchingRows,
+            searchColumn.value,
+            matchingRows.length > 0
+                ? criteria.join(", ")
+                : ""
+        );
+
+    }
+
+    searchBtn.addEventListener(
+        "click",
+        performSearch
+    );
+
+    searchInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+
+                performSearch();
+
+            }
+
+        }
+    );
+
+    searchClearBtn.addEventListener(
+        "click",
+        () => {
+
+            searchColumn.value =
+                "";
+
+            updateSearchPlaceholder();
+
+            searchInput.value =
+                "";
+
+            searchCount.textContent =
+                "No search yet.";
+
+            renderSearchResults(
+                [],
+                "",
+                ""
+            );
+
+        }
+    );
+
+    function renderFilters() {
+
+        filtersContainer.innerHTML =
+            "";
+
+        const filterColumns =
+            excelColumns.filter(
+                column =>
+                    column !== "CLUSTER"
+            );
+
+        filters.forEach(
+            (filter,index) => {
+
+                const wrapper =
+                    document.createElement(
+                        "div"
+                    );
+
+                wrapper.className =
+                    "filter-row";
+
+                const header =
+                    document.createElement(
+                        "div"
+                    );
+
+                header.className =
+                    "filter-row-header";
+
+                header.innerHTML = `
+
+                    <div class="filter-row-title">
+                        FILTER ${index + 1}
+                    </div>
+
+                    ${
+                        filters.length > 1
+                            ? `
+                                <button
+                                    class="remove-filter-btn"
+                                    data-index="${index}"
+                                >
+                                    ×
+                                </button>
+                              `
+                            : ""
+                    }
+
+                `;
+
+                wrapper.appendChild(
+                    header
+                );
+
+                const label =
+                    document.createElement(
+                        "label"
+                    );
+
+                label.className =
+                    "filter-label";
+
+                label.textContent =
+                    "FILTER COLUMN";
+
+                wrapper.appendChild(
+                    label
+                );
+
+                const select =
+                    document.createElement(
+                        "select"
+                    );
+
+                select.className =
+                    "filter-select";
+
+                select.innerHTML = `
+
+                    <option value="">
+                        Select column...
+                    </option>
+
+                `;
+
+                filterColumns.forEach(
+                    column => {
+
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+                        option.value =
+                            column;
+
+                        option.textContent =
+                            column;
+
+                        if (
+                            filter.column ===
+                            column
+                        ) {
+
+                            option.selected =
+                                true;
+
+                        }
+
+                        select.appendChild(
+                            option
+                        );
+
+                    }
+                );
+
+                select.addEventListener(
+                    "change",
+                    () => {
+
+                        filter.column =
+                            select.value;
+
+                        filter.values = [];
+
+                        filter.from = "";
+
+                        filter.to = "";
+
+                        renderFilters();
+
+                    }
+                );
+
+                wrapper.appendChild(
+                    select
+                );
+
+                if (
+                    filter.column
+                ) {
+
+                    if (
+                        isDateColumnName(
+                            filter.column
+                        )
+                    ) {
+
+                        const valueWrapper =
+                            document.createElement(
+                                "div"
+                            );
+
+                        valueWrapper.className =
+                            "filter-values";
+
+                        valueWrapper.innerHTML = `
+
+                            <div class="filter-label">
+                                DATE RANGE
+                            </div>
+
+                            <div class="date-range">
+
+                                <input
+                                    type="date"
+                                    class="filter-input"
+                                    data-date="from"
+                                    value="${escapeAttribute(
+                                        filter.from
+                                    )}"
+                                >
+
+                                <input
+                                    type="date"
+                                    class="filter-input"
+                                    data-date="to"
+                                    value="${escapeAttribute(
+                                        filter.to
+                                    )}"
+                                >
+
+                            </div>
+
+                        `;
+
+                        const fromInput =
+                            valueWrapper.querySelector(
+                                '[data-date="from"]'
+                            );
+
+                        const toInput =
+                            valueWrapper.querySelector(
+                                '[data-date="to"]'
+                            );
+
+                        fromInput.addEventListener(
+                            "change",
+                            () => {
+
+                                filter.from =
+                                    fromInput.value;
+
+                            }
+                        );
+
+                        toInput.addEventListener(
+                            "change",
+                            () => {
+
+                                filter.to =
+                                    toInput.value;
+
+                            }
+                        );
+
+                        wrapper.appendChild(
+                            valueWrapper
+                        );
+
+                    } else {
+
+                        const valueWrapper =
+                            document.createElement(
+                                "div"
+                            );
+
+                        valueWrapper.className =
+                            "filter-values";
+
+                        const valueLabel =
+                            document.createElement(
+                                "label"
+                            );
+
+                        valueLabel.className =
+                            "filter-label";
+
+                        valueLabel.textContent =
+                            "SELECT VALUE/S";
+
+                        valueWrapper.appendChild(
+                            valueLabel
+                        );
+
+                        const valueSelect =
+                            document.createElement(
+                                "select"
+                            );
+
+                        valueSelect.className =
+                            "filter-select";
+
+                        valueSelect.multiple =
+                            true;
+
+                        valueSelect.size =
+                            6;
+
+                        getUniqueColumnValues(
+                            filter.column
+                        ).forEach(
+                            value => {
+
+                                const option =
+                                    document.createElement(
+                                        "option"
+                                    );
+
+                                option.value =
+                                    value;
+
+                                option.textContent =
+                                    value ||
+                                    "(BLANK)";
+
+                                if (
+                                    filter.values.includes(
+                                        value
+                                    )
+                                ) {
+
+                                    option.selected =
+                                        true;
+
+                                }
+
+                                valueSelect.appendChild(
+                                    option
+                                );
+
+                            }
+                        );
+
+                        valueSelect.addEventListener(
+                            "change",
+                            () => {
+
+                                filter.values =
+                                    Array.from(
+                                        valueSelect.selectedOptions
+                                    ).map(
+                                        option =>
+                                            option.value
+                                    );
+
+                            }
+                        );
+
+                        valueWrapper.appendChild(
+                            valueSelect
+                        );
+
+                        const help =
+                            document.createElement(
+                                "div"
+                            );
+
+                        help.style.fontSize =
+                            "10px";
+
+                        help.style.color =
+                            "#6b7280";
+
+                        help.style.marginTop =
+                            "5px";
+
+                        help.textContent =
+                            "Use Ctrl / Shift to select multiple values.";
+
+                        valueWrapper.appendChild(
+                            help
+                        );
+
+                        wrapper.appendChild(
+                            valueWrapper
+                        );
+
+                    }
+
+                }
+
+                filtersContainer.appendChild(
+                    wrapper
+                );
+
+            }
+        );
+
+        document
+            .querySelectorAll(
+                ".remove-filter-btn"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            filters.splice(
+                                Number(
+                                    button.dataset.index
+                                ),
+                                1
+                            );
+
+                            renderFilters();
+
+                        }
+                    );
+
+                }
+            );
+
+    }
+
+    addFilterBtn.addEventListener(
+        "click",
+        () => {
+
+            filters.push({
+
+                column: "",
+
+                values: [],
+
+                from: "",
+
+                to: ""
+
+            });
+
+            renderFilters();
+
+        }
+    );
+
+    /* =====================================================
+       APPLY FILTERS
+    ===================================================== */
+
+    clusterSelect.addEventListener(
+        "change",
+        () => {
+
+            applyFiltersBtn.click();
+
+        }
+    );
+
+    applyFiltersBtn.addEventListener(
+        "click",
+        () => {
+
+            const activeFilters =
+                filters.filter(
+                    filter => {
+
+                        if (
+                            !filter.column
+                        ) {
+
+                            return false;
+
+                        }
+
+                        if (
+                            isDateColumnName(
+                                filter.column
+                            )
+                        ) {
+
+                            return (
+                                filter.from ||
+                                filter.to
+                            );
+
+                        }
+
+                        return (
+                            filter.values &&
+                            filter.values.length >
+                            0
+                        );
+
+                    }
+                );
+
+            filteredData =
+                originalData.filter(
+                    row => {
+
+                        if (
+                            clusterSelect.value &&
+                            normalize(
+                                row.CLUSTER
+                            ) !==
+                            clusterSelect.value
+                        ) {
+
+                            return false;
+
+                        }
+
+                        if (
+                            activeFilters.length ===
+                            0
+                        ) {
+
+                            return true;
+
+                        }
+
+                        return activeFilters.every(
+                            filter => {
+
+                                if (
+                                    isDateColumnName(
+                                        filter.column
+                                    )
+                                ) {
+
+                                    const rowDate =
+                                        normalizeDateValue(
+                                            row[
+                                                filter.column
+                                            ]
+                                        );
+
+                                    if (
+                                        !rowDate
+                                    ) {
+
+                                        return false;
+
+                                    }
+
+                                    if (
+                                        filter.from &&
+                                        rowDate <
+                                        filter.from
+                                    ) {
+
+                                        return false;
+
+                                    }
+
+                                    if (
+                                        filter.to &&
+                                        rowDate >
+                                        filter.to
+                                    ) {
+
+                                        return false;
+
+                                    }
+
+                                    return true;
+
+                                }
+
+                                const cellValue =
+                                    normalize(
+                                        row[
+                                            filter.column
+                                        ]
+                                    );
+
+                                return filter.values.includes(
+                                    cellValue
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+            updateFilterCount();
+
+            renderDashboard();
+
+            renderPlacementSummary();
+
+            renderFinalAreaSummary();
+
+            renderOutOfAreaSummary();
+
+        }
+    );
+
+    /* =====================================================
+       CLEAR FILTERS
+    ===================================================== */
+
+    clearFiltersBtn.addEventListener(
+        "click",
+        () => {
+
+            filters = [
+
+                {
+                    column: "",
+                    values: [],
+                    from: "",
+                    to: ""
+                }
+
+            ];
+
+            clusterSelect.value =
+                "";
+
+            filteredData =
+                [
+                    ...originalData
+                ];
+
+            renderFilters();
+
+            updateFilterCount();
+
+            renderDashboard();
+
+            renderPlacementSummary();
+
+            renderFinalAreaSummary();
+
+            renderOutOfAreaSummary();
+
+        }
+    );
+
+    function updateFilterCount() {
+
+        const active =
+            filters.filter(
+                filter => {
+
+                    if (
+                        !filter.column
+                    ) {
+
+                        return false;
+
+                    }
+
+                    if (
+                        isDateColumnName(
+                            filter.column
+                        )
+                    ) {
+
+                        return (
+                            filter.from ||
+                            filter.to
+                        );
+
+                    }
+
+                    return (
+                        filter.values &&
+                        filter.values.length >
+                        0
+                    );
+
+                }
+            ).length;
+
+        filterCount.textContent =
+            `${active} active filter${
+                active === 1
+                    ? ""
+                    : "s"
+            }`;
+
+    }
+
+    /* =====================================================
+       DOWNLOAD EXCEL
+    ===================================================== */
+
+    downloadExcelBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !originalData.length
+            ) {
+
+                alert(
+                    "Please load the Excel file first."
+                );
+
+                return;
+
+            }
+
+            const dataToDownload =
+                filteredData.length !==
+                originalData.length
+                    ? filteredData
+                    : originalData;
+
+            const worksheet =
+                XLSX.utils.json_to_sheet(
+                    dataToDownload,
+                    {
+                        header:
+                            excelColumns
+                    }
+                );
+
+            const workbook =
+                XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "PIF PEN RATE"
+            );
+
+            const today =
+                new Date();
+
+            const yyyy =
+                today.getFullYear();
+
+            const mm =
+                String(
+                    today.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            const dd =
+                String(
+                    today.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            const filtered =
+                filteredData.length !==
+                originalData.length;
+
+            const filename =
+                filtered
+                    ? `PIF_PEN_RATE_FILTERED_${yyyy}-${mm}-${dd}.xlsx`
+                    : `PIF_PEN_RATE_ALL_${yyyy}-${mm}-${dd}.xlsx`;
+
+            XLSX.writeFile(
+                workbook,
+                filename
+            );
+
+        }
+    );
+
+    /* =====================================================
+       DAILY VISIT COUNT
+    ===================================================== */
+
+    dailyVisitsNavBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !originalData.length
+            ) {
+
+                alert(
+                    "Please load the Excel file first."
+                );
+
+                return;
+
+            }
+
+            closeNavDrawer();
+
+            closeFilterSidebar();
+
+            setDailyVisitState();
+
+            renderDailyVisits();
+
+            dailyVisitsModal.classList.add(
+                "open"
+            );
+
+        }
+    );
+
+    function renderDailyVisits() {
+
+        const dailyCounts = {};
+
+        originalData.forEach(
+            row => {
+
+                const fieldResult =
+                    upper(
+                        row[
+                            "FIELD RESULT"
+                        ]
+                    );
+
+                if (
+                    !VISITED_STATUSES.includes(
+                        fieldResult
+                    )
+                ) {
+
+                    return;
+
+                }
+
+                const dateValue =
+                    normalizeDateValue(
+                        row[
+                            "FIELD RESULT DATE"
+                        ]
+                    );
+
+                if (!dateValue) {
+
+                    return;
+
+                }
+
+                if (
+                    !dailyCounts[
+                        dateValue
+                    ]
+                ) {
+
+                    dailyCounts[
+                        dateValue
+                    ] = {
+
+                        POS: 0,
+
+                        "POS W/C": 0,
+
+                        PTP: 0,
+
+                        TP: 0,
+
+                        NEG: 0,
+
+                        total: 0
+
+                    };
+
+                }
+
+                dailyCounts[
+                    dateValue
+                ][
+                    fieldResult
+                ]++;
+
+                dailyCounts[
+                    dateValue
+                ].total++;
+
+            }
+        );
+
+        const dates =
+            Object.keys(
+                dailyCounts
+            )
+            .filter(
+                dateKey =>
+                    dailyCounts[
+                        dateKey
+                    ].total > 0
+            )
+            .sort();
+
+        let totalVisits = 0;
+
+        dates.forEach(
+            dateKey => {
+
+                totalVisits +=
+                    dailyCounts[
+                        dateKey
+                    ].total;
+
+            }
+        );
+
+        const activeDays =
+            dates.length;
+
+        const average =
+            activeDays > 0
+                ? totalVisits /
+                  activeDays
+                : 0;
+
+        document.getElementById(
+            "dailyActiveDays"
+        ).textContent =
+            formatNumber(
+                activeDays
+            );
+
+        document.getElementById(
+            "dailyAverageVisits"
+        ).textContent =
+            average.toFixed(2);
+
+        const tbody =
+            document
+                .getElementById(
+                    "dailyVisitsTable"
+                )
+                .querySelector(
+                    "tbody"
+                );
+
+        tbody.innerHTML =
+            "";
+
+        dates.forEach(
+            dateKey => {
+
+                const counts =
+                    dailyCounts[
+                        dateKey
+                    ];
+
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
+
+                tr.innerHTML = `
+
+                    <td>
+                        ${formatDisplayDate(
+                            dateKey
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            counts.POS
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            counts[
+                                "POS W/C"
+                            ]
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            counts.PTP
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            counts.TP
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            counts.NEG
+                        )}
+                    </td>
+
+                    <td class="daily-total-column">
+                        <strong>
+                            ${formatNumber(
+                                counts.total
+                            )}
+                        </strong>
+                    </td>
+
+                `;
+
+                tbody.appendChild(
+                    tr
+                );
+
+            }
+        );
+
+        if (
+            dates.length === 0
+        ) {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            tr.innerHTML = `
+
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        padding:25px;
+                        color:#6b7280;
+                    "
+                >
+                    No visit records found.
+                </td>
+
+            `;
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+
+    }
+
+    /* =====================================================
+       CLOSE DAILY MODAL
+    ===================================================== */
+
+    closeDailyVisits.addEventListener(
+        "click",
+        () => {
+
+            dailyVisitsModal.classList.remove(
+                "open"
+            );
+
+            setHomeState();
+
+        }
+    );
+
+    dailyVisitsModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                dailyVisitsModal
+            ) {
+
+                dailyVisitsModal.classList.remove(
+                    "open"
+                );
+
+                setHomeState();
+
+            }
+
+        }
+    );
+
+    /* =====================================================
+       ESCAPE KEY
+    ===================================================== */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
+
+                closeNavDrawer();
+
+                closeFilterSidebar();
+
+                if (
+                    dailyVisitsModal.classList.contains(
+                        "open"
+                    )
+                ) {
+
+                    dailyVisitsModal.classList.remove(
+                        "open"
+                    );
+
+                    setHomeState();
+
+                }
+
+            }
+
+        }
+    );
+
+    /* =====================================================
+       HTML ESCAPE
+    ===================================================== */
+
+    function escapeHtml(
+        value
+    ) {
+
+        return String(
+            value ?? ""
+        )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+    }
+
+    function escapeAttribute(
+        value
+    ) {
+
+        return escapeHtml(
+            value
+        ).replace(
+            /`/g,
+            "&#096;"
+        );
+
+    }
+
+    /* =====================================================
+       INITIAL STATE
+    ===================================================== */
+
+    filters = [
+
+        {
+            column: "",
+            values: [],
+            from: "",
+            to: ""
+        }
+
+    ];
+
+    renderFilters();
+
+    updateFilterCount();
+
+    closeNavDrawer();
+
+    closeFilterSidebar();
+
+    setHomeState();
+
+</script>
+
+</body>
+</html>
