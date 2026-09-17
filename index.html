@@ -1407,7 +1407,7 @@
 
     <p>
         Select your
-        <strong>Excel workbook or converted binary file</strong>
+        <strong>Excel workbook (.xlsx/.xls/.xlsb) or binary workbook copy</strong>
         to load the dashboard.
     </p>
 
@@ -1415,7 +1415,7 @@
         id="fileInput"
         class="file-input"
         type="file"
-        accept=".xlsx,.xls,.xlsm,.csv,.bin,.dat,.raw,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream"
+        accept=".xlsx,.xls,.xlsb,.xlsm,.csv,.bin,.dat,.raw,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.binary.macroEnabled.12,application/octet-stream"
     >
 
 </section>
@@ -3058,9 +3058,14 @@
             const clusterCandidates = [
                 "CLUSTER.xlsx",
                 "CLUSTER.xls",
+                "CLUSTER.xlsb",
                 "CLUSTER.bin",
                 "CLUSTER.dat",
                 "CLUSTER"
+            ];
+
+            const rawGithubClusterUrls = [
+                "https://raw.githubusercontent.com/jorem-jomayo/PPR2026/main/CLUSTER.xlsx"
             ];
 
             let response = null;
@@ -3085,6 +3090,35 @@
                     }
 
                 } catch (error) {
+
+                }
+
+            }
+
+            if (!response) {
+
+                for (const url of rawGithubClusterUrls) {
+
+                    try {
+
+                        const candidateResponse =
+                            await fetch(
+                                url,
+                                {
+                                    cache: "no-store"
+                                }
+                            );
+
+                        if (candidateResponse.ok) {
+
+                            response = candidateResponse;
+                            break;
+
+                        }
+
+                    } catch (error) {
+
+                    }
 
                 }
 
@@ -3416,12 +3450,21 @@
                 "PEN RATE.xlsx",
                 "PIF PEN RATE.xls",
                 "PEN RATE.xls",
+                "PIF PEN RATE.xlsb",
+                "PEN RATE.xlsb",
                 "PIF PEN RATE.bin",
                 "PEN RATE.bin",
                 "PIF PEN RATE.dat",
                 "PEN RATE.dat",
                 "PIF PEN RATE",
                 "PEN RATE"
+            ];
+
+            const rawGithubWorkbookUrls = [
+                "https://raw.githubusercontent.com/jorem-jomayo/PPR2026/main/PIF%20PEN%20RATE.xlsb",
+                "https://raw.githubusercontent.com/jorem-jomayo/PPR2026/main/PIF%20PEN%20RATE.xlsx",
+                "https://raw.githubusercontent.com/jorem-jomayo/PPR2026/main/PEN%20RATE.xlsb",
+                "https://raw.githubusercontent.com/jorem-jomayo/PPR2026/main/PEN%20RATE.xlsx"
             ];
 
             let response = null;
@@ -3451,6 +3494,36 @@
                     }
 
                 } catch (error) {
+
+                }
+
+            }
+
+            if (!response) {
+
+                for (const url of rawGithubWorkbookUrls) {
+
+                    try {
+
+                        const candidateResponse =
+                            await fetch(
+                                url,
+                                {
+                                    cache: "no-store"
+                                }
+                            );
+
+                        if (candidateResponse.ok) {
+
+                            response = candidateResponse;
+                            workbookName = url.split("/").pop();
+                            break;
+
+                        }
+
+                    } catch (error) {
+
+                    }
 
                 }
 
