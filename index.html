@@ -1407,15 +1407,15 @@
 
     <p>
         Select your
-        <strong>PIF PEN RATE.xlsx</strong>
-        file to load the dashboard.
+        <strong>Excel workbook or converted binary file</strong>
+        to load the dashboard.
     </p>
 
     <input
         id="fileInput"
         class="file-input"
         type="file"
-        accept=".xlsx,.xls"
+        accept=".xlsx,.xls,.xlsm,.csv,.bin,.dat,.raw,.txt,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream"
     >
 
 </section>
@@ -3055,18 +3055,45 @@
 
         try {
 
-            const response =
-                await fetch(
-                    "CLUSTER.xlsx",
-                    {
-                        cache: "no-store"
-                    }
-                );
+            const clusterCandidates = [
+                "CLUSTER.xlsx",
+                "CLUSTER.xls",
+                "CLUSTER.bin",
+                "CLUSTER.dat",
+                "CLUSTER"
+            ];
 
-            if (!response.ok) {
+            let response = null;
+
+            for (const candidate of clusterCandidates) {
+
+                try {
+
+                    const candidateResponse =
+                        await fetch(
+                            candidate,
+                            {
+                                cache: "no-store"
+                            }
+                        );
+
+                    if (candidateResponse.ok) {
+
+                        response = candidateResponse;
+                        break;
+
+                    }
+
+                } catch (error) {
+
+                }
+
+            }
+
+            if (!response) {
 
                 throw new Error(
-                    "CLUSTER.xlsx was not found."
+                    "CLUSTER workbook was not found."
                 );
 
             }
@@ -3386,7 +3413,15 @@
 
             const workbookNames = [
                 "PIF PEN RATE.xlsx",
-                "PEN RATE.xlsx"
+                "PEN RATE.xlsx",
+                "PIF PEN RATE.xls",
+                "PEN RATE.xls",
+                "PIF PEN RATE.bin",
+                "PEN RATE.bin",
+                "PIF PEN RATE.dat",
+                "PEN RATE.dat",
+                "PIF PEN RATE",
+                "PEN RATE"
             ];
 
             let response = null;
@@ -3424,7 +3459,7 @@
             if (!response) {
 
                 throw new Error(
-                    "PEN RATE.xlsx or PIF PEN RATE.xlsx was not found."
+                    "Workbook file was not found."
                 );
 
             }
