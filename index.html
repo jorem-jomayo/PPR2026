@@ -16,6 +16,23 @@
 
 <title>PIF Penetration Rate Dashboard</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet"
+>
+
+<link
+    href="bg.css"
+    rel="stylesheet"
+>
+
+<link
+    href="loader.css"
+    rel="stylesheet"
+>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
@@ -24,11 +41,74 @@
         box-sizing: border-box;
     }
 
+    button {
+        transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            background-color .18s ease;
+    }
+
+    button:not(:disabled):hover {
+        transform: translateY(-2px);
+
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
+    }
+
+    button:not(:disabled):active {
+        transform: translateY(0);
+
+        box-shadow: 0 2px 5px rgba(15, 23, 42, 0.12);
+    }
+
     body {
         margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background: #f5f7fa;
+        font-family: "IBM Plex Sans", sans-serif;
+        background: transparent;
         color: #111827;
+        position: relative;
+    }
+
+    .background-layer {
+        position: fixed;
+
+        inset: 0;
+
+        z-index: 0;
+
+        pointer-events: none;
+    }
+
+    header,
+    .penetration-card,
+    .card,
+    .section,
+    .daily-summary-card,
+    .nav-drawer,
+    .filter-sidebar {
+        background: rgba(255, 255, 255, 0.72);
+
+        border-color: rgba(255, 255, 255, 0.7);
+
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+        backdrop-filter: blur(10px);
+
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    main {
+        position: relative;
+
+        z-index: 1;
+    }
+
+    h1,
+    h2,
+    h3,
+    .header-title,
+    .penetration-rate,
+    .section-title {
+        font-family: "Manrope", sans-serif;
     }
 
     /* =====================================================
@@ -68,6 +148,20 @@
         background: #ffffff;
     }
 
+    .placement-select {
+        width: 170px;
+
+        border: 1px solid #d1d5db;
+
+        border-radius: 7px;
+
+        padding: 8px 10px;
+
+        font-size: 12px;
+
+        background: #ffffff;
+    }
+
     .burger-btn {
         border: none;
         background: transparent;
@@ -93,6 +187,31 @@
         margin-top: 2px;
     }
 
+    .dashboard-updated {
+        font-size: 10px;
+
+        color: #9ca3af;
+
+    }
+
+    .header-meta {
+        display: flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        margin-top: 3px;
+
+        font-size: 10px;
+
+        color: #6b7280;
+    }
+
+    .header-meta-bullet {
+        color: #9ca3af;
+    }
+
     /* =====================================================
        NAV DRAWER
     ===================================================== */
@@ -100,11 +219,11 @@
     .nav-drawer {
         position: fixed;
 
-        top: 72px;
+        top: 64px;
         left: 0;
 
         width: 240px;
-        height: calc(100vh - 72px);
+        height: calc(100vh - 64px);
 
         background: #ffffff;
 
@@ -146,6 +265,18 @@
         cursor: pointer;
 
         color: #374151;
+    }
+
+    .nav-filter-control {
+        padding: 8px 22px 12px;
+
+        border-bottom: 1px solid #e5e7eb;
+
+        margin-bottom: 6px;
+    }
+
+    .nav-filter-control .cluster-select {
+        width: 100%;
     }
 
     .nav-item:hover {
@@ -194,11 +325,11 @@
     .filter-sidebar {
         position: fixed;
 
-        top: 72px;
+        top: 64px;
         left: 0;
 
         width: 320px;
-        height: calc(100vh - 72px);
+        height: calc(100vh - 64px);
 
         background: #ffffff;
 
@@ -517,6 +648,38 @@
         z-index: 1;
     }
 
+    .search-results-heading {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 12px;
+    }
+
+    .search-results-download-btn {
+        border: none;
+
+        border-radius: 8px;
+
+        padding: 9px 12px;
+
+        background: #1d4ed8;
+
+        color: #ffffff;
+
+        cursor: pointer;
+
+        font-size: 11px;
+
+        font-weight: 700;
+    }
+
+    .search-results-download-btn:hover {
+        background: #1e40af;
+    }
+
     .search-results-empty {
         padding: 24px;
 
@@ -601,6 +764,28 @@
         gap: 16px;
     }
 
+    .reset-dashboard-btn {
+        border: none;
+
+        border-radius: 8px;
+
+        padding: 9px 14px;
+
+        background: #e5e7eb;
+
+        color: #111827;
+
+        cursor: pointer;
+
+        font-size: 11px;
+
+        font-weight: 700;
+    }
+
+    .reset-dashboard-btn:hover {
+        background: #d1d5db;
+    }
+
     .penetration-label {
         font-size: 13px;
 
@@ -630,13 +815,23 @@
 
         height: 28px;
 
-        background: #e5e7eb;
+        background: rgba(255, 255, 255, 0.38);
+
+        border: 1px solid rgba(255, 255, 255, 0.72);
 
         border-radius: 999px;
 
         overflow: hidden;
 
         margin-top: 10px;
+
+        box-shadow:
+            inset 0 2px 5px rgba(15, 23, 42, 0.12),
+            0 3px 12px rgba(15, 23, 42, 0.08);
+
+        backdrop-filter: blur(8px);
+
+        -webkit-backdrop-filter: blur(8px);
     }
 
     .progress {
@@ -654,11 +849,25 @@
     }
 
     .progress.rate-red {
-        background-color: #dc2626;
+        background: linear-gradient(
+            90deg,
+            rgba(248, 113, 113, 0.34) 0%,
+            rgba(220, 38, 38, 0.72) 72%,
+            #dc2626 100%
+        );
+
+        box-shadow: 4px 0 12px rgba(220, 38, 38, 0.48);
     }
 
     .progress.rate-green {
-        background-color: #16a34a;
+        background: linear-gradient(
+            90deg,
+            rgba(74, 222, 128, 0.34) 0%,
+            rgba(22, 163, 74, 0.72) 72%,
+            #16a34a 100%
+        );
+
+        box-shadow: 4px 0 12px rgba(22, 163, 74, 0.48);
     }
 
     /* =====================================================
@@ -911,48 +1120,6 @@
         font-weight: 800;
     }
 
-    .loading-status {
-        font-size: 12px;
-
-        color: #6b7280;
-
-        margin-top: 6px;
-    }
-
-    .loading-progress-container {
-        width: 100%;
-
-        height: 14px;
-
-        background: #e5e7eb;
-
-        border-radius: 999px;
-
-        overflow: hidden;
-
-        margin-top: 18px;
-    }
-
-    .loading-progress {
-        width: 0%;
-
-        height: 100%;
-
-        background: #111827;
-
-        transition: width .3s ease;
-    }
-
-    .loading-percent {
-        text-align: right;
-
-        font-size: 12px;
-
-        font-weight: 700;
-
-        margin-top: 7px;
-    }
-
     /* =====================================================
        DAILY VISIT MODAL
     ===================================================== */
@@ -1156,11 +1323,60 @@
 
     }
 
+    header,
+    .penetration-card,
+    .card,
+    .section,
+    .daily-summary-card,
+    .nav-drawer,
+    .filter-sidebar {
+        background: rgba(255, 255, 255, 0.72);
+
+        border-color: rgba(255, 255, 255, 0.7);
+
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+        backdrop-filter: blur(10px);
+
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .loading-box .loader {
+        align-items: center;
+
+        line-height: 40px;
+    }
+
+    .loading-box .loader p {
+        margin: 0;
+
+        line-height: 40px;
+    }
+
+    .loading-box .words {
+        height: 40px;
+
+        line-height: 40px;
+    }
+
+    .loading-box .word {
+        height: 40px;
+
+        line-height: 40px;
+    }
+
 </style>
 
 </head>
 
 <body>
+
+<div
+    class="background-layer"
+    aria-hidden="true"
+>
+    <div class="container"></div>
+</div>
 
 <!-- =====================================================
      HEADER
@@ -1180,11 +1396,18 @@
     <div>
 
         <div class="header-title">
-            PIF PENETRATION RATE DASHBOARD
+            PIF Penetration Rate Dashboard
         </div>
 
-        <div class="header-subtitle">
-            Field Monitoring
+        <div class="header-meta">
+            <span>Field Monitoring</span>
+            <span class="header-meta-bullet">&bull;</span>
+            <span
+                id="dashboardUpdated"
+                class="dashboard-updated"
+            >
+                Data updated: --/--/----, --:-- --
+            </span>
         </div>
 
     </div>
@@ -1194,12 +1417,12 @@
 <div class="header-right">
 
     <select
-        id="clusterSelect"
-        class="cluster-select"
+        id="placementSelect"
+        class="placement-select"
         disabled
     >
         <option value="">
-            ALL CLUSTERS
+            ALL PLACEMENTS
         </option>
     </select>
 
@@ -1215,6 +1438,27 @@
     id="navDrawer"
     class="nav-drawer"
 >
+
+<div class="nav-filter-control">
+
+    <label
+        class="filter-label"
+        for="clusterSelect"
+    >
+        CLUSTER
+    </label>
+
+    <select
+        id="clusterSelect"
+        class="cluster-select"
+        disabled
+    >
+        <option value="">
+            ALL CLUSTERS
+        </option>
+    </select>
+
+</div>
 
 <button
     id="homeNavBtn"
@@ -1431,11 +1675,19 @@
         class="section"
     >
 
-        <div class="section-heading">
+        <div class="section-heading search-results-heading">
 
             <h2 class="section-title">
                 SEARCH RESULTS
             </h2>
+
+            <button
+                id="downloadSearchResultsBtn"
+                class="search-results-download-btn"
+                type="button"
+            >
+                ↓ DOWNLOAD RESULTS
+            </button>
 
         </div>
 
@@ -1476,6 +1728,14 @@
                 </div>
 
             </div>
+
+            <button
+                id="resetDashboardBtn"
+                class="reset-dashboard-btn"
+                type="button"
+            >
+                RESET
+            </button>
 
         </div>
 
@@ -1910,31 +2170,24 @@
 
 <div class="loading-box">
 
-    <div class="loading-title">
-        Loading Dashboard
-    </div>
+    <div class="spinnerContainer">
 
-    <div
-        id="loadingStatus"
-        class="loading-status"
-    >
-        Preparing file...
-    </div>
+        <div class="spinner"></div>
 
-    <div class="loading-progress-container">
+        <div class="loader">
 
-        <div
-            id="loadingProgress"
-            class="loading-progress"
-        ></div>
+            <p>loading</p>
 
-    </div>
+            <div class="words">
+                <span class="word">file</span>
+                <span class="word">workbook</span>
+                <span class="word">cluster</span>
+                <span class="word">filters</span>
+                <span class="word">dashboard</span>
+            </div>
 
-    <div
-        id="loadingPercent"
-        class="loading-percent"
-    >
-        0%
+        </div>
+
     </div>
 
 </div>
@@ -2012,19 +2265,55 @@
 
                 <tr>
 
-                    <th>DATE</th>
+                    <th
+                        data-daily-column="date"
+                    >
+                        DATE
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
-                    <th>POS</th>
+                    <th
+                        data-daily-column="POS"
+                    >
+                        POS
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
-                    <th>POS W/C</th>
+                    <th
+                        data-daily-column="POS W/C"
+                    >
+                        POS W/C
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
-                    <th>PTP</th>
+                    <th
+                        data-daily-column="PTP"
+                    >
+                        PTP
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
-                    <th>TP</th>
+                    <th
+                        data-daily-column="TP"
+                    >
+                        TP
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
-                    <th>NEG</th>
+                    <th
+                        data-daily-column="NEG"
+                    >
+                        NEG
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
-                    <th class="daily-total-column">TOTAL VISITS</th>
+                    <th
+                        class="daily-total-column"
+                        data-daily-column="total"
+                    >
+                        TOTAL VISITS
+                        <span class="sort-arrow">↕</span>
+                    </th>
 
                 </tr>
 
@@ -2054,6 +2343,8 @@
 
     let filters = [];
 
+    let currentSearchResults = [];
+
     let sortState = {
 
         placement: {
@@ -2073,6 +2364,11 @@
 
     };
 
+    let dailySortState = {
+        column: "date",
+        direction: "asc"
+    };
+
     const VISITED_STATUSES = [
 
         "POS",
@@ -2081,6 +2377,30 @@
         "TP",
         "NEG"
 
+    ];
+
+    const FILTERABLE_COLUMNS = [
+        "PLACEMENT",
+        "ADD TYPE",
+        "AREA",
+        "MUNICIPALITY",
+        "FINAL AREA",
+        "DL TYPE",
+        "AUTOFIELD DATE",
+        "ENDO DATE",
+        "ACCOUNT TYPE",
+        "REMARKS",
+        "FIELD RESULT",
+        "FIELD RESULT DATE",
+        "SUB STATUS",
+        "POUT / ACTIVE",
+        "DISPO STATUS",
+        "DISPO SUB-STATUS",
+        "CURED/CANCEL",
+        "PROCESS COUNT",
+        "PAYMENT REMARKS",
+        "TAGGED",
+        "PRINTED"
     ];
 
     /* =====================================================
@@ -2142,6 +2462,16 @@
             "clusterSelect"
         );
 
+    const placementSelect =
+        document.getElementById(
+            "placementSelect"
+        );
+
+    const dashboardUpdated =
+        document.getElementById(
+            "dashboardUpdated"
+        );
+
     const filterSidebar =
         document.getElementById(
             "filterSidebar"
@@ -2170,6 +2500,11 @@
     const clearFiltersBtn =
         document.getElementById(
             "clearFiltersBtn"
+        );
+
+    const resetDashboardBtn =
+        document.getElementById(
+            "resetDashboardBtn"
         );
 
     const filterCount =
@@ -2210,6 +2545,11 @@
     const searchResultsTable =
         document.getElementById(
             "searchResultsTable"
+        );
+
+    const downloadSearchResultsBtn =
+        document.getElementById(
+            "downloadSearchResultsBtn"
         );
 
     const searchWorkspace =
@@ -2303,21 +2643,6 @@
     const loadingOverlay =
         document.getElementById(
             "loadingOverlay"
-        );
-
-    const loadingProgress =
-        document.getElementById(
-            "loadingProgress"
-        );
-
-    const loadingPercent =
-        document.getElementById(
-            "loadingPercent"
-        );
-
-    const loadingStatus =
-        document.getElementById(
-            "loadingStatus"
         );
 
     const dailyVisitsModal =
@@ -2769,6 +3094,104 @@
             day +
             ", " +
             year
+        );
+
+    }
+
+    function formatSearchResultValue(
+        value,
+        columnName
+    ) {
+
+        const column =
+            upper(
+                columnName
+            );
+
+        if (
+            isDateColumnName(
+                column
+            )
+        ) {
+
+            const dateKey =
+                normalizeDateValue(
+                    value
+                );
+
+            if (
+                /^\d{4}-\d{2}-\d{2}$/.test(
+                    dateKey
+                )
+            ) {
+
+                const parts =
+                    dateKey.split(
+                        "-"
+                    );
+
+                return (
+                    parts[1] +
+                    "/" +
+                    parts[2] +
+                    "/" +
+                    parts[0]
+                );
+
+            }
+
+            return normalize(
+                value
+            );
+
+        }
+
+        if (
+            column === "OB" ||
+            column.includes(
+                "AMOUNT DUE"
+            )
+        ) {
+
+            const normalizedValue =
+                normalize(
+                    value
+                );
+
+            if (!normalizedValue) {
+
+                return "";
+
+            }
+
+            const numericValue =
+                Number(
+                    normalizedValue.replace(
+                        /,/g,
+                        ""
+                    )
+                );
+
+            if (
+                Number.isFinite(
+                    numericValue
+                )
+            ) {
+
+                return numericValue.toLocaleString(
+                    "en-US",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                );
+
+            }
+
+        }
+
+        return normalize(
+            value
         );
 
     }
@@ -3234,6 +3657,58 @@
 
     }
 
+    function renderPlacementSelect() {
+
+        const placementValues =
+            Array.from(
+                new Set(
+                    originalData
+                        .map(
+                            row =>
+                                normalize(
+                                    row.PLACEMENT
+                                )
+                        )
+                        .filter(
+                            value => value
+                        )
+                )
+            ).sort();
+
+        placementSelect.innerHTML = `
+
+            <option value="">
+                ALL PLACEMENTS
+            </option>
+
+        `;
+
+        placementValues.forEach(
+            placement => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    placement;
+
+                option.textContent =
+                    placement;
+
+                placementSelect.appendChild(
+                    option
+                );
+
+            }
+        );
+
+        placementSelect.disabled =
+            false;
+
+    }
+
     async function loadExcelFile(
         file
     ) {
@@ -3328,6 +3803,8 @@
 
                 renderClusterSelect();
 
+                renderPlacementSelect();
+
                 filteredData =
                     [
                         ...originalData
@@ -3393,6 +3870,11 @@
                 updateLoading(
                     100,
                     "Dashboard ready!"
+                );
+
+                updateDashboardTimestamp(
+                    file,
+                    workbook
                 );
 
                 await delay(250);
@@ -3579,19 +4061,42 @@
 
     }
 
-    function updateLoading(
-        percent,
-        status
+    function updateDashboardTimestamp(
+        sourceFile,
+        workbook
     ) {
 
-        loadingProgress.style.width =
-            percent + "%";
+        const workbookModifiedAt =
+            workbook &&
+            workbook.Props &&
+            workbook.Props.ModifiedDate;
 
-        loadingPercent.textContent =
-            percent + "%";
+        const updatedAt =
+            workbookModifiedAt ||
+            sourceFile &&
+            sourceFile.lastModified
+                ? new Date(
+                    workbookModifiedAt ||
+                    sourceFile.lastModified
+                )
+                : new Date();
 
-        loadingStatus.textContent =
-            status;
+        dashboardUpdated.textContent =
+            "Data updated: " +
+            updatedAt.toLocaleString(
+                "en-US",
+                {
+                    month: "2-digit",
+                    day: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+    }
+
+    function updateLoading() {
 
     }
 
@@ -4724,6 +5229,8 @@
             !query
         ) {
 
+            currentSearchResults = [];
+
             searchResultsSection.style.display =
                 "none";
 
@@ -4733,6 +5240,10 @@
 
         searchResultsSection.style.display =
             "block";
+
+        currentSearchResults = [
+            ...rows
+        ];
 
         const headerRow =
             document.createElement(
@@ -4813,10 +5324,11 @@
                             );
 
                         td.textContent =
-                            normalize(
+                            formatSearchResultValue(
                                 row[
                                     columnName
-                                ]
+                                ],
+                                columnName
                             );
 
                         tr.appendChild(
@@ -4892,6 +5404,89 @@
 
     }
 
+    downloadSearchResultsBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !currentSearchResults.length
+            ) {
+
+                return;
+
+            }
+
+            const downloadRows =
+                currentSearchResults.map(
+                    row => {
+
+                        const formattedRow = {};
+
+                        excelColumns.forEach(
+                            columnName => {
+
+                                formattedRow[
+                                    columnName
+                                ] = formatSearchResultValue(
+                                    row[
+                                        columnName
+                                    ],
+                                    columnName
+                                );
+
+                            }
+                        );
+
+                        return formattedRow;
+
+                    }
+                );
+
+            const worksheet =
+                XLSX.utils.json_to_sheet(
+                    downloadRows,
+                    {
+                        header: excelColumns
+                    }
+                );
+
+            const workbook =
+                XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "SEARCH RESULTS"
+            );
+
+            const today =
+                new Date();
+
+            const dateStamp =
+                today.getFullYear() +
+                "-" +
+                String(
+                    today.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                ) +
+                "-" +
+                String(
+                    today.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            XLSX.writeFile(
+                workbook,
+                `PIF_PEN_RATE_SEARCH_RESULTS_${dateStamp}.xlsx`
+            );
+
+        }
+    );
+
     searchBtn.addEventListener(
         "click",
         performSearch
@@ -4943,9 +5538,11 @@
             "";
 
         const filterColumns =
-            excelColumns.filter(
+            FILTERABLE_COLUMNS.filter(
                 column =>
-                    column !== "CLUSTER"
+                    excelColumns.includes(
+                        column
+                    )
             );
 
         filters.forEach(
@@ -5349,6 +5946,15 @@
         }
     );
 
+    placementSelect.addEventListener(
+        "change",
+        () => {
+
+            applyFiltersBtn.click();
+
+        }
+    );
+
     applyFiltersBtn.addEventListener(
         "click",
         () => {
@@ -5397,6 +6003,18 @@
                                 row.CLUSTER
                             ) !==
                             clusterSelect.value
+                        ) {
+
+                            return false;
+
+                        }
+
+                        if (
+                            placementSelect.value &&
+                            normalize(
+                                row.PLACEMENT
+                            ) !==
+                            placementSelect.value
                         ) {
 
                             return false;
@@ -5512,6 +6130,9 @@
             clusterSelect.value =
                 "";
 
+            placementSelect.value =
+                "";
+
             filteredData =
                 [
                     ...originalData
@@ -5528,6 +6149,15 @@
             renderFinalAreaSummary();
 
             renderOutOfAreaSummary();
+
+        }
+    );
+
+    resetDashboardBtn.addEventListener(
+        "click",
+        () => {
+
+            clearFiltersBtn.click();
 
         }
     );
@@ -5695,6 +6325,49 @@
         }
     );
 
+    document
+        .querySelectorAll(
+            "[data-daily-column]"
+        )
+        .forEach(
+            header => {
+
+                header.addEventListener(
+                    "click",
+                    () => {
+
+                        const column =
+                            header.dataset.dailyColumn;
+
+                        if (
+                            dailySortState.column ===
+                            column
+                        ) {
+
+                            dailySortState.direction =
+                                dailySortState.direction ===
+                                "asc"
+                                    ? "desc"
+                                    : "asc";
+
+                        } else {
+
+                            dailySortState.column =
+                                column;
+
+                            dailySortState.direction =
+                                "asc";
+
+                        }
+
+                        renderDailyVisits();
+
+                    }
+                );
+
+            }
+        );
+
     function renderDailyVisits() {
 
         const dailyCounts = {};
@@ -5780,8 +6453,76 @@
                     dailyCounts[
                         dateKey
                     ].total > 0
+            );
+
+        dates.sort(
+            (firstDate, secondDate) => {
+
+                const firstValue =
+                    dailySortState.column ===
+                    "date"
+                        ? firstDate
+                        : dailyCounts[
+                            firstDate
+                        ][
+                            dailySortState.column
+                        ];
+
+                const secondValue =
+                    dailySortState.column ===
+                    "date"
+                        ? secondDate
+                        : dailyCounts[
+                            secondDate
+                        ][
+                            dailySortState.column
+                        ];
+
+                const result =
+                    compareValues(
+                        firstValue,
+                        secondValue
+                    );
+
+                return dailySortState.direction ===
+                    "asc"
+                    ? result
+                    : -result;
+
+            }
+        );
+
+        document
+            .querySelectorAll(
+                "[data-daily-column]"
             )
-            .sort();
+            .forEach(
+                header => {
+
+                    const arrow =
+                        header.querySelector(
+                            ".sort-arrow"
+                        );
+
+                    if (
+                        !arrow
+                    ) {
+
+                        return;
+
+                    }
+
+                    arrow.textContent =
+                        header.dataset.dailyColumn ===
+                        dailySortState.column
+                            ? dailySortState.direction ===
+                              "asc"
+                                ? "↑"
+                                : "↓"
+                            : "↕";
+
+                }
+            );
 
         let totalVisits = 0;
 
