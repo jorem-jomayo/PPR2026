@@ -241,10 +241,44 @@
         padding: 14px 0;
 
         overflow-y: auto;
+
+        display: flex;
+
+        flex-direction: column;
     }
 
     .nav-drawer.open {
         transform: translateX(0);
+    }
+
+    .nav-drawer .payment-active-btn {
+        width: calc(100% - 28px);
+
+        margin: auto 14px 0;
+
+        padding: 0.7em 1.7em;
+
+        font-size: 12px;
+
+        color: #090909;
+
+        background: #e8e8e8;
+
+        border: 1px solid #e8e8e8;
+
+        border-radius: 0.5em;
+
+        box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
+
+        transition: all 0.3s;
+
+        outline: none;
+    }
+
+    .nav-drawer .payment-active-btn:active {
+        color: #666666;
+
+        box-shadow: inset 4px 4px 12px #c5c5c5, inset -4px -4px 12px #ffffff;
     }
 
     .nav-item {
@@ -1365,6 +1399,40 @@
         line-height: 40px;
     }
 
+    /* Apply the shared button design only to extraction controls. */
+    .download-btn,
+    .search-results-download-btn {
+        color: #090909 !important;
+
+        padding: 8px 12px !important;
+
+        font-size: 12px !important;
+
+        border-radius: 0.5em !important;
+
+        background: #e8e8e8 !important;
+
+        border: 1px solid #e8e8e8 !important;
+
+        box-shadow: 4px 4px 8px #c5c5c5, -4px -4px 8px #ffffff !important;
+
+        transition: all 0.3s !important;
+    }
+
+    .download-btn:not(:disabled):hover,
+    .search-results-download-btn:not(:disabled):hover {
+        transform: translateY(-3px);
+
+        box-shadow: 6px 8px 12px #c5c5c5, -4px -4px 10px #ffffff !important;
+    }
+
+    .download-btn:active,
+    .search-results-download-btn:active {
+        color: #666666 !important;
+
+        box-shadow: inset 3px 3px 8px #c5c5c5, inset -3px -3px 8px #ffffff !important;
+    }
+
 </style>
 
 </head>
@@ -1488,6 +1556,13 @@
     class="nav-item"
 >
     🔎 SEARCH EXCEL
+</button>
+
+<button
+    id="downloadPaymentActiveBtn"
+    class="download-btn payment-active-btn"
+>
+    PAYMENT + ACTIVE
 </button>
 
 </nav>
@@ -2575,6 +2650,11 @@
             "downloadExcelBtn"
         );
 
+    const downloadPaymentActiveBtn =
+        document.getElementById(
+            "downloadPaymentActiveBtn"
+        );
+
     const placementOthersBtn =
         document.getElementById(
             "placementOthersBtn"
@@ -3146,9 +3226,15 @@
 
         }
 
+        const normalizedColumn =
+            upper(
+                column
+            );
+
         if (
-            column === "OB" ||
-            column.includes(
+            normalizedColumn === "OB" ||
+            normalizedColumn === "AMOUNT" ||
+            normalizedColumn.includes(
                 "AMOUNT DUE"
             )
         ) {
@@ -3193,6 +3279,86 @@
         return normalize(
             value
         );
+
+    }
+    function prepareExportRows(
+        rows
+    ) {
+
+        return rows.map(
+            row => {
+
+                const formattedRow = {};
+
+                excelColumns.forEach(
+                    columnName => {
+
+                        formattedRow[columnName] =
+                            formatSearchResultValue(
+                                row[columnName],
+                                columnName
+                            );
+
+                    }
+                );
+
+                return formattedRow;
+
+            }
+        );
+
+    }
+
+    function styleExportWorksheet(
+        worksheet
+    ) {
+
+        const range =
+            XLSX.utils.decode_range(
+                worksheet["!ref"] || "A1"
+            );
+
+        for (
+            let rowIndex = range.s.r;
+            rowIndex <= range.e.r;
+            rowIndex += 1
+        ) {
+
+            for (
+                let columnIndex = range.s.c;
+                columnIndex <= range.e.c;
+                columnIndex += 1
+            ) {
+
+                const address =
+                    XLSX.utils.encode_cell({
+                        r: rowIndex,
+                        c: columnIndex
+                    });
+
+                if (
+                    worksheet[address]
+                ) {
+
+                    worksheet[address].s = {
+                        font: {
+                            name: "Calibri",
+                            sz: 9
+                        }
+                    };
+
+                }
+
+            }
+
+        }
+
+        worksheet["!cols"] =
+            excelColumns.map(
+                () => ({
+                    wch: 14
+                })
+            );
 
     }
 
@@ -5417,29 +5583,8 @@
             }
 
             const downloadRows =
-                currentSearchResults.map(
-                    row => {
-
-                        const formattedRow = {};
-
-                        excelColumns.forEach(
-                            columnName => {
-
-                                formattedRow[
-                                    columnName
-                                ] = formatSearchResultValue(
-                                    row[
-                                        columnName
-                                    ],
-                                    columnName
-                                );
-
-                            }
-                        );
-
-                        return formattedRow;
-
-                    }
+                prepareExportRows(
+                    currentSearchResults
                 );
 
             const worksheet =
@@ -5449,6 +5594,10 @@
                         header: excelColumns
                     }
                 );
+
+            styleExportWorksheet(
+                worksheet
+            );
 
             const workbook =
                 XLSX.utils.book_new();
@@ -5481,7 +5630,10 @@
 
             XLSX.writeFile(
                 workbook,
-                `PIF_PEN_RATE_SEARCH_RESULTS_${dateStamp}.xlsx`
+                `PIF_PEN_RATE_SEARCH_RESULTS_${dateStamp}.xlsx`,
+                {
+                    cellStyles: true
+                }
             );
 
         }
@@ -6233,14 +6385,23 @@
                     ? filteredData
                     : originalData;
 
+            const exportRows =
+                prepareExportRows(
+                    dataToDownload
+                );
+
             const worksheet =
                 XLSX.utils.json_to_sheet(
-                    dataToDownload,
+                    exportRows,
                     {
                         header:
                             excelColumns
                     }
                 );
+
+            styleExportWorksheet(
+                worksheet
+            );
 
             const workbook =
                 XLSX.utils.book_new();
@@ -6284,7 +6445,152 @@
 
             XLSX.writeFile(
                 workbook,
-                filename
+                filename,
+                {
+                    cellStyles: true
+                }
+            );
+
+        }
+    );
+
+    downloadPaymentActiveBtn.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !originalData.length
+            ) {
+
+                alert(
+                    "Please load the Excel file first."
+                );
+
+                return;
+
+            }
+
+            const paymentColumn =
+                excelColumns.find(
+                    column =>
+                        upper(column) ===
+                        "PAYMENT REMARKS"
+                );
+
+            const activeColumn =
+                excelColumns.find(
+                    column =>
+                        upper(column) ===
+                        "POUT / ACTIVE"
+                );
+
+            if (
+                !paymentColumn ||
+                !activeColumn
+            ) {
+
+                alert(
+                    "The workbook must contain PAYMENT REMARKS and POUT / ACTIVE columns."
+                );
+
+                return;
+
+            }
+
+            const sourceData =
+                filteredData.length !==
+                originalData.length
+                    ? filteredData
+                    : originalData;
+
+            const paymentActiveRows =
+                sourceData.filter(
+                    row => {
+
+                        const paymentStatus =
+                            upper(
+                                row[paymentColumn]
+                            ).replace(
+                                /\s+/g,
+                                " "
+                            );
+
+                        return (
+                            paymentStatus ===
+                                "PAYMENT" &&
+                            upper(
+                                row[activeColumn]
+                            ) === "ACTIVE"
+                        );
+
+                    }
+                );
+
+            if (
+                !paymentActiveRows.length
+            ) {
+
+                alert(
+                    "No PAYMENT + ACTIVE records found."
+                );
+
+                return;
+
+            }
+
+            const exportRows =
+                prepareExportRows(
+                    paymentActiveRows
+                );
+
+            const worksheet =
+                XLSX.utils.json_to_sheet(
+                    exportRows,
+                    {
+                        header:
+                            excelColumns
+                    }
+                );
+
+            styleExportWorksheet(
+                worksheet
+            );
+
+            const workbook =
+                XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "PAYMENT ACTIVE"
+            );
+
+            const today =
+                new Date();
+
+            const dateStamp =
+                today.getFullYear() +
+                "-" +
+                String(
+                    today.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                ) +
+                "-" +
+                String(
+                    today.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+            XLSX.writeFile(
+                workbook,
+                `PIF_PEN_RATE_PAYMENT_ACTIVE_${dateStamp}.xlsx`,
+                {
+                    cellStyles: true
+                }
             );
 
         }
